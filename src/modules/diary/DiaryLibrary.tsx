@@ -1,22 +1,23 @@
-import { useDeferredValue, useState } from 'react'
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useDeferredValue, useMemo, useState } from 'react'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Plus, Sparkles } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import * as api from './api'
-import { LIBRARY_KEY, type Note, type NoteFilter, type NoteInput } from './api'
+import { colorsByName, LIBRARY_KEY, type Note, type NoteFilter } from './api'
 import { CaptureStatus } from './CaptureStatus'
 import { DiaryFilters } from './DiaryFilters'
 import { NoteDialog } from './NoteDialog'
 import { NoteList } from './NoteList'
 import { useCaptures } from './useCaptures'
+import { useNoteActions } from './useNoteActions'
 
 type Editing = { note: Note | null } | null
 
 export function DiaryLibrary() {
-  const queryClient = useQueryClient()
+  const { save, saveFailed, saveNote, removeNote } = useNoteActions()
   const [filter, setFilter] = useState<NoteFilter>({})
   const [search, setSearch] = useState('')
   const [editing, setEditing] = useState<Editing>(null)
@@ -32,16 +33,8 @@ export function DiaryLibrary() {
   const folders = useQuery({ queryKey: [...LIBRARY_KEY, 'folders'], queryFn: api.fetchFolders })
   const tags = useQuery({ queryKey: [...LIBRARY_KEY, 'tags'], queryFn: api.fetchTags })
 
-  const { mutate: save, isError: saveFailed } = useMutation({
-    mutationFn: (action: () => Promise<unknown>) => action(),
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: LIBRARY_KEY })
-    },
-  })
-
-  function saveNote(note: Note | null, input: NoteInput) {
-    save(() => (note ? api.updateNote(note.id, input) : api.createNote(input)))
-  }
+  const folderColors = useMemo(() => colorsByName(folders.data), [folders.data])
+  const tagColors = useMemo(() => colorsByName(tags.data), [tags.data])
 
   const empty = !notes.isPending && !notes.isError && notes.data?.length === 0
   const filtered = Boolean(filter.folder || filter.tag || query)
@@ -53,8 +46,10 @@ export function DiaryLibrary() {
         tags={tags.data ?? []}
         filter={filter}
         onChange={setFilter}
-        onRenameFolder={(id, name) => save(() => api.renameFolder(id, name))}
+        onRenameFolder={(id, name) => save(() => api.updateFolder(id, { name }))}
+        onFolderColor={(id, color) => save(() => api.updateFolder(id, { color }))}
         onDeleteFolder={(id) => save(() => api.deleteFolder(id))}
+        onTagColor={(id, color) => save(() => api.updateTagColor(id, color))}
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
@@ -104,7 +99,12 @@ export function DiaryLibrary() {
               </Button>
             </div>
           ))}
-        {notes.data && <NoteList notes={notes.data} onOpen={(note) => setEditing({ note })} />}
+        {notes.data && <NoteList
+            notes={notes.data}
+            folderColors={folderColors}
+            tagColors={tagColors}
+            onOpen={(note) => setEditing({ note })}
+          />}
       </div>
 
       {editing && (
@@ -116,8 +116,7 @@ export function DiaryLibrary() {
           onClose={() => setEditing(null)}
           onSave={(input) => saveNote(editing.note, input)}
           onDelete={() => {
-            const { note } = editing
-            if (note) save(() => api.deleteNote(note.id))
+            if (editing.note) removeNote(editing.note)
             setEditing(null)
           }}
         />

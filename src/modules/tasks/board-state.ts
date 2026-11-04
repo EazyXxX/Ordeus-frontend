@@ -1,6 +1,7 @@
 import { arrayMove } from '@dnd-kit/sortable'
 
 import type { Card, Column } from './api'
+import type { Priority } from './appearance'
 
 export function findCardColumn(columns: Column[], cardId: string) {
   return columns.find((column) => column.cards.some((card) => card.id === cardId))
@@ -35,4 +36,26 @@ export function placeCard(columns: Column[], cardId: string, targetId: string, i
     }
     return column
   })
+}
+
+export type TaskFilter = {
+  query: string
+  priority: Priority | 'all'
+}
+
+export function isFiltering({ query, priority }: TaskFilter) {
+  return query.trim() !== '' || priority !== 'all'
+}
+
+export function filterColumns(columns: Column[], filter: TaskFilter): Column[] {
+  if (!isFiltering(filter)) return columns
+  const query = filter.query.trim().toLowerCase()
+  return columns.map((column) => ({
+    ...column,
+    cards: column.cards.filter(
+      (card) =>
+        (filter.priority === 'all' || card.priority === filter.priority) &&
+        `${card.title} ${card.description}`.toLowerCase().includes(query),
+    ),
+  }))
 }

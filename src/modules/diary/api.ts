@@ -1,4 +1,5 @@
 import { request } from '@/lib/api'
+import type { Color } from '@/lib/colors'
 
 export type NoteRef = { id: string; title: string }
 
@@ -16,8 +17,12 @@ export type Note = {
 
 export type NoteInput = Pick<Note, 'title' | 'body' | 'folder' | 'tags'> & { linkIds: string[] }
 
-export type Folder = { id: string; name: string; notes: number }
-export type Tag = { name: string; notes: number }
+export type Folder = { id: string; name: string; color: Color; notes: number }
+export type Tag = { id: string; name: string; color: Color; notes: number }
+export function colorsByName(items: { name: string; color: Color }[] = []) {
+  return new Map(items.map(({ name, color }) => [name, color]))
+}
+
 export type NoteFilter = { folder?: string; tag?: string; q?: string }
 
 export type Capture = {
@@ -59,10 +64,12 @@ export const updateNote = (id: string, input: NoteInput) => send(`/notes/${id}`,
 export const deleteNote = (id: string) => send(`/notes/${id}`, 'DELETE')
 
 export const fetchFolders = () => request<Folder[]>(`${BASE}/folders`)
-export const renameFolder = (id: string, name: string) => send(`/folders/${id}`, 'PATCH', { name })
+export const updateFolder = (id: string, changes: { name?: string; color?: Color }) =>
+  send(`/folders/${id}`, 'PATCH', changes)
 export const deleteFolder = (id: string) => send(`/folders/${id}`, 'DELETE')
 
 export const fetchTags = () => request<Tag[]>(`${BASE}/tags`)
+export const updateTagColor = (id: string, color: Color) => send(`/tags/${id}`, 'PATCH', { color })
 
 export const fetchCaptures = () => request<Capture[]>(`${BASE}/captures`)
 export const createCapture = (text: string) => send('/captures', 'POST', { text })
@@ -75,4 +82,11 @@ export const selectModel = (model: string) =>
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ model }),
+  })
+
+export const transcribeAudio = (wav: Blob) =>
+  request<{ text: string }>('/api/ai/transcribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'audio/wav' },
+    body: wav,
   })

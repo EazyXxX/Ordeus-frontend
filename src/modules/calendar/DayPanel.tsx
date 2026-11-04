@@ -41,7 +41,7 @@ export function DayPanel({ date, notes, tasks, onQuickAdd, onOpenNote, onNewNote
           {tasks.map((task) => (
             <Link
               key={task.id}
-              to={`/kanban?card=${task.id}`}
+              to={`/tasks?card=${task.id}`}
               className="flex items-center gap-2 rounded-md border p-2 text-sm outline-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring"
             >
               <CheckSquare className="size-4 shrink-0 text-muted-foreground" aria-hidden />

@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { CAPTURES_KEY, deleteCapture, retryCapture, type Capture } from './api'
@@ -21,7 +22,12 @@ export function CaptureStatus({ active, failed }: CaptureStatusProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      {active > 0 && <p className="text-sm text-muted-foreground">Нейросеть разбирает записи: {active}</p>}
+      {active > 0 && (
+        <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" aria-hidden />
+          Нейросеть разбирает записи: {active}
+        </p>
+      )}
       {failed.map((capture) => (
         <div key={capture.id} role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-3">
           <p className="line-clamp-3 text-sm whitespace-pre-wrap">{capture.text}</p>

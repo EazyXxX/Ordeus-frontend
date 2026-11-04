@@ -3,6 +3,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-
 import { CSS } from '@dnd-kit/utilities'
 import { MoreHorizontal } from 'lucide-react'
 
+import { ColorSubmenu } from '@/components/ColorSubmenu'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,15 +19,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { COLOR_DOT, COLOR_LABELS, COLORS, type Color } from '@/lib/colors'
+import { COLOR_DOT, type Color } from '@/lib/colors'
 import { cn } from '@/lib/utils'
 import type { Card, Column } from './api'
 import { InlineAdd } from './InlineAdd'
@@ -119,22 +115,7 @@ export function KanbanColumn({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" onCloseAutoFocus={(event) => event.preventDefault()}>
                 <DropdownMenuItem onSelect={() => setRenaming(true)}>Переименовать</DropdownMenuItem>
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>Цвет</DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuRadioGroup
-                      value={column.color}
-                      onValueChange={(value) => onColorChange(value as Color)}
-                    >
-                      {COLORS.map((color) => (
-                        <DropdownMenuRadioItem key={color} value={color}>
-                          <span className={cn('size-2.5 rounded-full', COLOR_DOT[color])} aria-hidden />
-                          {COLOR_LABELS[color]}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
+                <ColorSubmenu value={column.color} onChange={onColorChange} />
                 <DropdownMenuItem variant="destructive" onSelect={requestDelete}>
                   Удалить
                 </DropdownMenuItem>

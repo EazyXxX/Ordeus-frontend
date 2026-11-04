@@ -12,6 +12,6 @@ export type OrganizerModule = {
 // only needs an entry here and its page in src/modules/<name>/.
 export const modules: OrganizerModule[] = [
   { title: 'Дневник', path: '/diary', icon: BookOpen, load: () => import('./diary/DiaryPage') },
+  { title: 'Задачи', path: '/tasks', icon: KanbanSquare, load: () => import('./tasks/TasksPage') },
   { title: 'Календарь', path: '/calendar', icon: CalendarDays, load: () => import('./calendar/CalendarPage') },
-  { title: 'Канбан', path: '/kanban', icon: KanbanSquare, load: () => import('./kanban/KanbanPage') },
 ]
