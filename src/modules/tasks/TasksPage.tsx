@@ -5,6 +5,8 @@ import { useLocation, useSearchParams } from 'react-router'
 import { ModeTabs } from '@/components/ModeTabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { CaptureStatus } from '@/components/zen/CaptureStatus'
+import { useCaptures } from '@/components/zen/useCaptures'
 import * as api from './api'
 import { BOARD_QUERY_KEY, fetchBoard, type CardInput, type Column } from './api'
 import { isOverdue, PRIORITIES, PRIORITY_LABELS, type Priority } from './appearance'
@@ -12,11 +14,14 @@ import { filterColumns, findCard, isFiltering, type TaskFilter } from './board-s
 import { CardDialog } from './CardDialog'
 import { KanbanBoard } from './KanbanBoard'
 import { TaskList } from './TaskList'
+import { TasksZen } from './TasksZen'
 
 const LIST_PATH = '/tasks/list'
+const ZEN_PATH = '/tasks/zen'
 const TABS = [
   { to: '/tasks', label: 'Канбан' },
   { to: LIST_PATH, label: 'Список' },
+  { to: ZEN_PATH, label: 'Дзен' },
 ]
 
 function Tasks({ columns }: { columns: Column[] }) {
@@ -35,7 +40,16 @@ function Tasks({ columns }: { columns: Column[] }) {
     },
   })
 
+  const captures = useCaptures({
+    queryKey: api.CAPTURES_KEY,
+    fetchCaptures: api.fetchCaptures,
+    resultKey: BOARD_QUERY_KEY,
+    doneMessage: 'Задачи добавлены на доску',
+    failedMessage: 'Не удалось создать задачи. Текст сохранён на вкладке «Канбан».',
+  })
+
   const showList = pathname === LIST_PATH
+  const showZen = pathname === ZEN_PATH
   const filtering = isFiltering(filter)
   const visibleColumns = useMemo(() => filterColumns(columns, filter), [columns, filter])
   const allCards = columns.flatMap((column) => column.cards)
@@ -65,36 +79,54 @@ function Tasks({ columns }: { columns: Column[] }) {
         </p>
       )}
 
-      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b px-4 py-2">
-        <Input
-          type="search"
-          aria-label="Поиск по задачам"
-          placeholder="Поиск по задачам"
-          className="h-8 w-full sm:w-56"
-          value={filter.query}
-          onChange={(event) => setFilter({ ...filter, query: event.target.value })}
-        />
-        <select
-          aria-label="Фильтр по приоритету"
-          className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm"
-          value={filter.priority}
-          onChange={(event) => setFilter({ ...filter, priority: event.target.value as Priority | 'all' })}
-        >
-          <option value="all">Все приоритеты</option>
-          {PRIORITIES.map((value) => (
-            <option key={value} value={value}>
-              {PRIORITY_LABELS[value]}
-            </option>
-          ))}
-        </select>
-        <p className="ml-auto text-xs text-muted-foreground">
-          {filtering && !showList ? 'При фильтре перетаскивание отключено · ' : ''}
-          Задач: {allCards.length}
-          {overdue > 0 && <span className="text-destructive"> · просрочено: {overdue}</span>}
-        </p>
-      </div>
+      {(captures.active > 0 || captures.failed.length > 0) && !showZen && (
+        <div className="shrink-0 border-b px-4 py-2">
+          <CaptureStatus
+            active={captures.active}
+            failed={captures.failed}
+            activeLabel="Нейросеть создаёт задачи"
+            failedLabel="Не удалось создать задачи, но текст сохранён."
+            queryKey={api.CAPTURES_KEY}
+            onRetry={api.retryCapture}
+            onDelete={api.deleteCapture}
+          />
+        </div>
+      )}
 
-      {showList ? (
+      {!showZen && (
+        <div className="flex shrink-0 flex-wrap items-center gap-2 border-b px-4 py-2">
+          <Input
+            type="search"
+            aria-label="Поиск по задачам"
+            placeholder="Поиск по задачам"
+            className="h-8 w-full sm:w-56"
+            value={filter.query}
+            onChange={(event) => setFilter({ ...filter, query: event.target.value })}
+          />
+          <select
+            aria-label="Фильтр по приоритету"
+            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm"
+            value={filter.priority}
+            onChange={(event) => setFilter({ ...filter, priority: event.target.value as Priority | 'all' })}
+          >
+            <option value="all">Все приоритеты</option>
+            {PRIORITIES.map((value) => (
+              <option key={value} value={value}>
+                {PRIORITY_LABELS[value]}
+              </option>
+            ))}
+          </select>
+          <p className="ml-auto text-xs text-muted-foreground">
+            {filtering && !showList ? 'При фильтре перетаскивание отключено · ' : ''}
+            Задач: {allCards.length}
+            {overdue > 0 && <span className="text-destructive"> · просрочено: {overdue}</span>}
+          </p>
+        </div>
+      )}
+
+      {showZen ? (
+        <TasksZen active={captures.active} />
+      ) : showList ? (
         <TaskList
           columns={visibleColumns}
           onAddCard={(columnId, title) => save(() => api.createCard(columnId, title))}

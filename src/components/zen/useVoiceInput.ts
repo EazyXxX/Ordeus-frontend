@@ -1,9 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { transcribeAudio } from './api'
+import { request } from '@/lib/api'
 import { toWav } from './audio'
 
 const MAX_RECORDING_SECONDS = 600
+
+const transcribeAudio = (wav: Blob) =>
+  request<{ text: string }>('/api/ai/transcribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'audio/wav' },
+    body: wav,
+  })
 
 type Status = 'idle' | 'recording' | 'transcribing'
 

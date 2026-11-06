@@ -5,13 +5,13 @@ import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { CaptureStatus } from '@/components/zen/CaptureStatus'
+import { useCaptures } from '@/components/zen/useCaptures'
 import * as api from './api'
 import { colorsByName, LIBRARY_KEY, type Note, type NoteFilter } from './api'
-import { CaptureStatus } from './CaptureStatus'
 import { DiaryFilters } from './DiaryFilters'
 import { NoteDialog } from './NoteDialog'
 import { NoteList } from './NoteList'
-import { useCaptures } from './useCaptures'
 import { useNoteActions } from './useNoteActions'
 
 type Editing = { note: Note | null } | null
@@ -22,7 +22,13 @@ export function DiaryLibrary() {
   const [search, setSearch] = useState('')
   const [editing, setEditing] = useState<Editing>(null)
   const query = useDeferredValue(search.trim())
-  const { active, failed } = useCaptures()
+  const { active, failed } = useCaptures({
+    queryKey: api.CAPTURES_KEY,
+    fetchCaptures: api.fetchCaptures,
+    resultKey: LIBRARY_KEY,
+    doneMessage: 'Запись в дневнике',
+    failedMessage: 'Не удалось разобрать запись. Текст сохранён.',
+  })
 
   const notes = useQuery({
     queryKey: [...LIBRARY_KEY, 'notes', filter, query],
@@ -50,6 +56,7 @@ export function DiaryLibrary() {
         onFolderColor={(id, color) => save(() => api.updateFolder(id, { color }))}
         onDeleteFolder={(id) => save(() => api.deleteFolder(id))}
         onTagColor={(id, color) => save(() => api.updateTagColor(id, color))}
+        onDeleteTag={(id) => save(() => api.deleteTag(id))}
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
@@ -72,7 +79,15 @@ export function DiaryLibrary() {
             Не удалось сохранить изменения.
           </p>
         )}
-        <CaptureStatus active={active} failed={failed} />
+        <CaptureStatus
+          active={active}
+          failed={failed}
+          activeLabel="Нейросеть разбирает записи"
+          failedLabel="Не удалось разобрать запись, но текст сохранён."
+          queryKey={api.CAPTURES_KEY}
+          onRetry={api.retryCapture}
+          onDelete={api.deleteCapture}
+        />
 
         {notes.isPending && <p className="text-sm text-muted-foreground">Загружаем записи…</p>}
         {notes.isError && !notes.data && (

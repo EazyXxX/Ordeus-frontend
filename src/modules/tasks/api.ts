@@ -1,5 +1,7 @@
 import { request } from '@/lib/api'
+import type { Capture } from '@/components/zen/useCaptures'
 import type { Color } from '@/lib/colors'
+import { localDate } from '@/lib/dates'
 import type { Priority } from './appearance'
 
 export type ChecklistItem = {
@@ -33,6 +35,7 @@ export type Column = {
 type Board = { columns: Column[] }
 
 export const BOARD_QUERY_KEY = ['kanban', 'board']
+export const CAPTURES_KEY = ['kanban', 'captures']
 
 const BASE = '/api/kanban'
 
@@ -57,3 +60,9 @@ export const updateCard = (id: string, input: CardInput) => send(`/cards/${id}`,
 export const deleteCard = (id: string) => send(`/cards/${id}`, 'DELETE')
 export const moveCard = (id: string, columnId: string, index: number) =>
   send(`/cards/${id}/move`, 'POST', { columnId, index })
+
+export const fetchCaptures = () => request<Capture[]>(`${BASE}/captures`)
+// The author's date, so words like "tomorrow" mean the day they were written.
+export const createCapture = (text: string) => send('/captures', 'POST', { text, today: localDate(new Date()) })
+export const retryCapture = (id: string) => send(`/captures/${id}/retry`, 'POST')
+export const deleteCapture = (id: string) => send(`/captures/${id}`, 'DELETE')

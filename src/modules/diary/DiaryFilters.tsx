@@ -2,6 +2,16 @@ import { useState, type FormEvent } from 'react'
 import { MoreHorizontal } from 'lucide-react'
 
 import { ColorSubmenu } from '@/components/ColorSubmenu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
@@ -80,6 +90,12 @@ function RenameDialog({ folder, onClose, onRename }: RenameDialogProps) {
   )
 }
 
+type PendingDelete = {
+  title: string
+  description: string
+  confirm: () => void
+}
+
 type DiaryFiltersProps = {
   folders: Folder[]
   tags: Tag[]
@@ -89,6 +105,7 @@ type DiaryFiltersProps = {
   onFolderColor: (id: string, color: Color) => void
   onDeleteFolder: (id: string) => void
   onTagColor: (id: string, color: Color) => void
+  onDeleteTag: (id: string) => void
 }
 
 export function DiaryFilters({
@@ -100,8 +117,32 @@ export function DiaryFilters({
   onFolderColor,
   onDeleteFolder,
   onTagColor,
+  onDeleteTag,
 }: DiaryFiltersProps) {
   const [renaming, setRenaming] = useState<Folder | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null)
+
+  function requestFolderDelete(folder: Folder) {
+    setPendingDelete({
+      title: `Удалить папку «${folder.name}»?`,
+      description: `Записи останутся в дневнике, но без папки: ${folder.notes}. Отменить это нельзя.`,
+      confirm: () => {
+        onDeleteFolder(folder.id)
+        if (filter.folder === folder.id) onChange({ ...filter, folder: undefined })
+      },
+    })
+  }
+
+  function requestTagDelete(tag: Tag) {
+    setPendingDelete({
+      title: `Удалить тег «${tag.name}»?`,
+      description: `Записи останутся, но тег исчезнет из них: ${tag.notes}. Отменить это нельзя.`,
+      confirm: () => {
+        onDeleteTag(tag.id)
+        if (filter.tag === tag.name) onChange({ ...filter, tag: undefined })
+      },
+    })
+  }
 
   return (
     <aside className="flex shrink-0 gap-1 overflow-x-auto border-b p-2 md:w-56 md:flex-col md:overflow-x-visible md:overflow-y-auto md:border-r md:border-b-0">
@@ -137,13 +178,7 @@ export function DiaryFilters({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={() => setRenaming(folder)}>Переименовать</DropdownMenuItem>
               <ColorSubmenu value={folder.color} onChange={(color) => onFolderColor(folder.id, color)} />
-              <DropdownMenuItem
-                variant="destructive"
-                onSelect={() => {
-                  onDeleteFolder(folder.id)
-                  if (filter.folder === folder.id) onChange({ ...filter, folder: undefined })
-                }}
-              >
+              <DropdownMenuItem variant="destructive" onSelect={() => requestFolderDelete(folder)}>
                 Удалить папку
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -171,10 +206,28 @@ export function DiaryFilters({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <ColorSubmenu value={tag.color} onChange={(color) => onTagColor(tag.id, color)} />
+              <DropdownMenuItem variant="destructive" onSelect={() => requestTagDelete(tag)}>
+                Удалить тег
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       ))}
+
+      <AlertDialog open={pendingDelete !== null} onOpenChange={(open) => !open && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{pendingDelete?.title}</AlertDialogTitle>
+            <AlertDialogDescription>{pendingDelete?.description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={pendingDelete?.confirm}>
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {renaming && (
         <RenameDialog

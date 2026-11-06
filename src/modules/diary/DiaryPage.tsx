@@ -2,6 +2,7 @@ import { lazy, Suspense, type ComponentType } from 'react'
 import { useLocation } from 'react-router'
 
 import { ModeTabs } from '@/components/ModeTabs'
+import { DiaryDays } from './DiaryDays'
 import { DiaryLibrary } from './DiaryLibrary'
 import { ZenMode } from './ZenMode'
 
@@ -10,11 +11,13 @@ const DiaryGraph = lazy(() => import('./DiaryGraph').then(({ DiaryGraph }) => ({
 
 const TABS = [
   { to: '/diary', label: 'Записи' },
+  { to: '/diary/days', label: 'Дни' },
   { to: '/diary/graph', label: 'Граф' },
   { to: '/diary/zen', label: 'Дзен' },
 ]
 
 const VIEWS: Record<string, ComponentType> = {
+  '/diary/days': DiaryDays,
   '/diary/graph': DiaryGraph,
   '/diary/zen': ZenMode,
 }

@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowUp, ChevronsUp, Equal, type LucideIcon } from 'lucide-react'
 
 import type { Color } from '@/lib/colors'
+import { localDate } from '@/lib/dates'
 import { cn } from '@/lib/utils'
 
 export const COLOR_EDGE: Record<Color, string> = {
@@ -34,12 +35,6 @@ export const PRIORITY_ICONS: Record<Exclude<Priority, 'none'>, { icon: LucideIco
   medium: { icon: Equal, className: 'text-yellow-500' },
   high: { icon: ArrowUp, className: 'text-orange-500' },
   urgent: { icon: ChevronsUp, className: 'text-red-500' },
-}
-
-function localDate(date: Date) {
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${date.getFullYear()}-${month}-${day}`
 }
 
 export function isOverdue(dueDate: string | null) {

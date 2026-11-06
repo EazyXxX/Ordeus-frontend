@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router'
 
+import { AccountMenu } from '@/app/account/AccountMenu'
 import { ServerStatus } from '@/app/ServerStatus'
 import { ThemeMenu } from '@/app/ThemeMenu'
 import {
@@ -49,6 +50,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <ThemeMenu />
+        <AccountMenu />
         <ServerStatus />
       </SidebarFooter>
       <SidebarRail />

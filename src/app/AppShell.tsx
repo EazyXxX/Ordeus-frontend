@@ -14,7 +14,7 @@ export function AppShell() {
       <SidebarInset className="min-w-0">
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
-          <h1 className="text-sm font-medium">{current?.title}</h1>
+          <h1 className="text-sm font-medium">{pathname === '/account' ? 'Личный кабинет' : current?.title}</h1>
         </header>
         <main className="flex min-h-0 flex-1 flex-col">
           <Outlet />
