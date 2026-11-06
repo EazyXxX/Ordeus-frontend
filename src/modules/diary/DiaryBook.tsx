@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router'
 import '@fontsource-variable/literata'
 import '@fontsource-variable/literata/wght-italic.css'
 
+import { locale, t } from '@/i18n'
 import { useCurrentUser } from '@/app/account/session'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -22,8 +23,8 @@ const PLACE_KEY = 'ordeus.book.day'
 const FONT_SIZES = { min: 15, max: 24, initial: 18 }
 const SERIF = '"Literata Variable", Georgia, serif'
 
-const dayFormat = new Intl.DateTimeFormat('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })
-const rangeFormat = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+const dayFormat = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' })
+const rangeFormat = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' })
 
 // Storage can be blocked, and the book reads fine without it.
 function remembered(key: string) {
@@ -75,9 +76,9 @@ function DayEntry({ value, onMark }: { value: BookDay; onMark: () => void }) {
 
       {day?.summary && (
         <aside className="border-l-2 pl-4 text-[0.92em] leading-relaxed text-muted-foreground italic">
-          <p className="mb-1 font-sans text-xs not-italic">Итог дня</p>
+          <p className="mb-1 font-sans text-xs not-italic">{t('book.daySummary')}</p>
           <p>{day.summary}</p>
-          {day.focus && <p className="mt-2">На завтра: {day.focus}</p>}
+          {day.focus && <p className="mt-2">{t('journal.tomorrow', { text: day.focus })}</p>}
         </aside>
       )}
     </section>
@@ -87,7 +88,7 @@ function DayEntry({ value, onMark }: { value: BookDay; onMark: () => void }) {
 function WeekEntry({ summary }: { summary: Summary }) {
   return (
     <section className="flex flex-col gap-3 rounded-2xl bg-muted/60 p-6">
-      <p className="font-sans text-xs text-muted-foreground">Итоги недели · {weekLabel(summary.week)}</p>
+      <p className="font-sans text-xs text-muted-foreground">{t('book.weekSummary', { week: weekLabel(summary.week) })}</p>
       {summary.headline && <h3 className="text-[1.3em] leading-snug font-semibold text-balance">{summary.headline}</h3>}
       <p className="leading-relaxed text-pretty">{summary.text}</p>
       {summary.highlights.length > 0 && (
@@ -181,32 +182,32 @@ export function DiaryBook() {
         <div className="h-full bg-foreground/60" style={{ width: `${progress * 100}%` }} />
       </div>
       <header className="flex shrink-0 items-center gap-1 border-b px-2 py-1.5">
-        <Button asChild variant="ghost" size="icon" aria-label="Закрыть книгу">
+        <Button asChild variant="ghost" size="icon" aria-label={t('book.close')}>
           <Link to="/diary/journal">
             <X />
           </Link>
         </Button>
-        <p className="min-w-0 flex-1 truncate px-1 text-sm font-medium">Книга</p>
-        <Button variant="ghost" size="icon" aria-label="Уменьшить шрифт" onClick={() => changeFont(-1)}>
+        <p className="min-w-0 flex-1 truncate px-1 text-sm font-medium">{t('book.title')}</p>
+        <Button variant="ghost" size="icon" aria-label={t('book.smaller')} onClick={() => changeFont(-1)}>
           <Minus />
         </Button>
-        <Button variant="ghost" size="icon" aria-label="Увеличить шрифт" onClick={() => changeFont(1)}>
+        <Button variant="ghost" size="icon" aria-label={t('book.larger')} onClick={() => changeFont(1)}>
           <Plus />
         </Button>
-        <Button variant="ghost" size="icon" aria-label="Оглавление" onClick={() => setContentsOpen(true)}>
+        <Button variant="ghost" size="icon" aria-label={t('book.contents')} onClick={() => setContentsOpen(true)}>
           <List />
         </Button>
       </header>
 
       <div ref={scroller} onScroll={track} className="min-h-0 flex-1 overflow-y-auto">
         <div style={{ fontFamily: SERIF, fontSize }} className="mx-auto flex w-full max-w-2xl flex-col gap-12 px-5 py-14">
-          {!ready && <p className="text-center text-muted-foreground">Открываем книгу…</p>}
+          {!ready && <p className="text-center text-muted-foreground">{t('book.opening')}</p>}
 
           {ready && book.dates.length === 0 && (
             <div className="flex flex-col items-center gap-4 py-16 text-center">
-              <p className="text-muted-foreground">Здесь будет история ваших дней. Пока в ней нет ни одной страницы.</p>
+              <p className="text-muted-foreground">{t('book.empty')}</p>
               <Button asChild variant="outline" style={{ fontFamily: 'var(--font-sans)' }}>
-                <Link to="/diary/zen">Написать о сегодняшнем дне</Link>
+                <Link to="/diary/zen">{t('book.write')}</Link>
               </Button>
             </div>
           )}
@@ -214,15 +215,17 @@ export function DiaryBook() {
           {firstDate && (
             <header className="flex flex-col items-center gap-3 py-10 text-center">
               <h1 className="text-[2.4em] leading-tight font-semibold text-balance">
-                История: {user.name.trim().split(/\s+/)[0]}
+                {t('book.story', { name: user.name.trim().split(/\s+/)[0] })}
               </h1>
               <p className="text-muted-foreground">
                 {rangeFormat.formatRange(parseLocalDate(firstDate), parseLocalDate(lastDate))}
               </p>
               <p className="font-sans text-sm text-muted-foreground">
-                Дней: {book.dates.length} · записей: {noteCount}
+                {t('book.stats', { days: book.dates.length, notes: noteCount })}
                 {scores.length > 0 &&
-                  ` · средняя оценка ${(scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(1)}`}
+                  t('book.average', {
+                    average: (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(1),
+                  })}
               </p>
             </header>
           )}
@@ -253,8 +256,8 @@ export function DiaryBook() {
       <Sheet open={contentsOpen} onOpenChange={setContentsOpen}>
         <SheetContent side="right" className="z-50 gap-0 overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>Оглавление</SheetTitle>
-            <SheetDescription className="sr-only">Переход к месяцу</SheetDescription>
+            <SheetTitle>{t('book.contents')}</SheetTitle>
+            <SheetDescription className="sr-only">{t('book.goToMonth')}</SheetDescription>
           </SheetHeader>
           <ul className="flex flex-col gap-1 p-2">
             {months.map((month) => (

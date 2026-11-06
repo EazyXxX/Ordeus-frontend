@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ComponentType } from 'react'
 import { useLocation } from 'react-router'
 
+import { t } from '@/i18n'
 import { ModeTabs } from '@/components/ModeTabs'
 import { DiaryLibrary } from './DiaryLibrary'
 import { DiaryJournal } from './DiaryJournal'
@@ -12,10 +13,10 @@ const DiaryGraph = lazy(() => import('./DiaryGraph').then(({ DiaryGraph }) => ({
 const DiaryBook = lazy(() => import('./DiaryBook').then(({ DiaryBook }) => ({ default: DiaryBook })))
 
 const TABS = [
-  { to: '/diary', label: 'Записи' },
-  { to: '/diary/journal', label: 'Ежедневник' },
-  { to: '/diary/graph', label: 'Граф' },
-  { to: '/diary/zen', label: 'Дзен' },
+  { to: '/diary', label: t('diary.notes') },
+  { to: '/diary/journal', label: t('journal.title') },
+  { to: '/diary/graph', label: t('diary.graph') },
+  { to: '/diary/zen', label: t('tasks.zen') },
 ]
 
 const VIEWS: Record<string, ComponentType> = {
@@ -31,8 +32,8 @@ export default function DiaryPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <ModeTabs label="Режим дневника" tabs={TABS} />
-      <Suspense fallback={<p className="p-6 text-sm text-muted-foreground">Загружаем…</p>}>
+      <ModeTabs label={t('diary.mode')} tabs={TABS} />
+      <Suspense fallback={<p className="p-6 text-sm text-muted-foreground">{t('common.loading')}</p>}>
         <View />
       </Suspense>
     </div>

@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowUp, ChevronsUp, Equal, type LucideIcon } from 'lucide-react'
 
+import { locale, t } from '@/i18n'
 import type { Color } from '@/lib/colors'
 import { localDate } from '@/lib/dates'
 import { cn } from '@/lib/utils'
@@ -23,11 +24,11 @@ export const PRIORITIES = ['none', 'low', 'medium', 'high', 'urgent'] as const
 export type Priority = (typeof PRIORITIES)[number]
 
 export const PRIORITY_LABELS: Record<Priority, string> = {
-  none: 'Без приоритета',
-  low: 'Низкий',
-  medium: 'Средний',
-  high: 'Высокий',
-  urgent: 'Срочный',
+  none: t('priority.none'),
+  low: t('priority.low'),
+  medium: t('priority.medium'),
+  high: t('priority.high'),
+  urgent: t('priority.urgent'),
 }
 
 export const PRIORITY_ICONS: Record<Exclude<Priority, 'none'>, { icon: LucideIcon; className: string }> = {
@@ -41,7 +42,7 @@ export function isOverdue(dueDate: string | null) {
   return dueDate !== null && dueDate < localDate(new Date())
 }
 
-const dueFormat = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' })
+const dueFormat = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' })
 
 export function formatDue(dueDate: string) {
   const [year, month, day] = dueDate.split('-').map(Number)

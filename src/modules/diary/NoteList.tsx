@@ -1,5 +1,6 @@
 import { CalendarDays, Link2, Sparkles } from 'lucide-react'
 
+import { locale, t } from '@/i18n'
 import { Badge } from '@/components/ui/badge'
 import { parseLocalDate } from '@/lib/dates'
 import { cn } from '@/lib/utils'
@@ -8,9 +9,9 @@ import { DayMark } from './DayMark'
 import { DaySummary } from './DaySummary'
 import { LabelMark } from './LabelMark'
 
-const dailyFormat = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' })
-const dayFormat = new Intl.DateTimeFormat('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-const dateFormat = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
+const dailyFormat = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' })
+const dayFormat = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+const dateFormat = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
 
 type NoteListProps = {
   notes: Note[]
@@ -65,7 +66,7 @@ export function NoteList({ notes, folderMarks, tagMarks, journal, onOpen }: Note
                   {note.links.length}
                 </span>
               )}
-              {note.fromAi && <Sparkles className="size-3" aria-label="Разобрано нейросетью" />}
+              {note.fromAi && <Sparkles className="size-3" aria-label={t('note.fromAi')} />}
               <span className="ml-auto">{dateFormat.format(new Date(note.createdAt))}</span>
             </span>
           </button>

@@ -1,3 +1,4 @@
+import { locale } from '@/i18n'
 import { localDate, parseLocalDate, weekStart } from '@/lib/dates'
 import type { Day, Note, Summary } from './api'
 
@@ -8,7 +9,7 @@ export type BookItem =
   | { type: 'day'; key: string; value: BookDay }
   | { type: 'week'; key: string; summary: Summary }
 
-const monthFormat = new Intl.DateTimeFormat('ru-RU', { month: 'long', year: 'numeric' })
+const monthFormat = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' })
 
 const isMarked = (day: Day) => Boolean(day.moods.length > 0 || day.score || day.summary)
 

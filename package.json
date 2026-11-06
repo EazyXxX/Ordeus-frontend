@@ -21,6 +21,7 @@
     "cn": "^0.5.2",
     "d3-force": "^3.0.1",
     "emojibase-data": "^18.0.0",
+    "i18next": "^26.7.2",
     "lucide-react": "^1.68.0",
     "radix-ui": "^1.8.1",
     "react": "^19.3.1",

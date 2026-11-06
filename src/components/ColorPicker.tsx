@@ -1,5 +1,6 @@
 import { Ban } from 'lucide-react'
 
+import { t } from '@/i18n'
 import { COLOR_DOT, COLOR_LABELS, COLORS, type Color } from '@/lib/colors'
 import { cn } from '@/lib/utils'
 
@@ -14,16 +15,16 @@ type ColorPickerProps<Value extends Color | ''> = {
 
 export function ColorPicker<Value extends Color | ''>({ value, allowNone, onChange }: ColorPickerProps<Value>) {
   return (
-    <div role="radiogroup" aria-label="Цвет" className="flex flex-col gap-1">
-      <span className="text-xs font-medium text-muted-foreground">Цвет</span>
+    <div role="radiogroup" aria-label={t('common.color')} className="flex flex-col gap-1">
+      <span className="text-xs font-medium text-muted-foreground">{t('common.color')}</span>
       <div className="flex flex-wrap gap-1.5">
         {allowNone && (
           <button
             type="button"
             role="radio"
             aria-checked={value === ''}
-            aria-label="Без цвета"
-            title="Без цвета"
+            aria-label={t('common.noColor')}
+            title={t('common.noColor')}
             onClick={() => onChange('' as Value)}
             className={cn(
               swatchClass,

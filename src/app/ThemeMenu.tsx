@@ -1,5 +1,6 @@
 import { Monitor, Moon, Sun, type LucideIcon } from 'lucide-react'
 
+import { t } from '@/i18n'
 import { useTheme, THEMES, type Theme } from '@/app/theme'
 import {
   DropdownMenu,
@@ -11,9 +12,9 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
 
 const THEME_LABELS: Record<Theme, string> = {
-  light: 'Светлая',
-  dark: 'Тёмная',
-  system: 'Как в системе',
+  light: t('theme.light'),
+  dark: t('theme.dark'),
+  system: t('theme.system'),
 }
 
 const THEME_ICONS: Record<Theme, LucideIcon> = {
@@ -31,7 +32,7 @@ export function ThemeMenu() {
       <SidebarMenuItem>
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton tooltip="Тема" aria-label={`Тема: ${THEME_LABELS[theme]}`}>
+            <SidebarMenuButton tooltip={t('theme.title')} aria-label={t('theme.current', { name: THEME_LABELS[theme] })}>
               <CurrentIcon />
               <span>{THEME_LABELS[theme]}</span>
             </SidebarMenuButton>

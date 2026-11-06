@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 
+import { t } from '@/i18n'
 import { ColorPicker } from '@/components/ColorPicker'
 import {
   AlertDialog,
@@ -50,25 +51,25 @@ export function NoteDialog({ note, date, onClose, onSave, onDelete }: NoteDialog
       <DialogContent>
         <form onSubmit={submit} className="flex flex-col gap-3">
           <DialogHeader>
-            <DialogTitle>{note ? 'Заметка' : 'Новая заметка'}</DialogTitle>
-            <DialogDescription className="sr-only">Название, дата, время и текст заметки</DialogDescription>
+            <DialogTitle>{note ? t('calendar.note') : t('calendar.newNote')}</DialogTitle>
+            <DialogDescription className="sr-only">{t('calendar.noteHint')}</DialogDescription>
           </DialogHeader>
 
           <Input
             autoFocus
-            aria-label="Название"
-            placeholder="Название"
+            aria-label={t('common.title')}
+            placeholder={t('common.title')}
             maxLength={200}
             value={title}
             onChange={(event) => setTitle(event.target.value)}
           />
           <div className="grid grid-cols-2 gap-2">
-            <Input type="date" aria-label="Дата" value={day} onChange={(event) => setDay(event.target.value)} />
-            <Input type="time" aria-label="Время" value={time} onChange={(event) => setTime(event.target.value)} />
+            <Input type="date" aria-label={t('calendar.date')} value={day} onChange={(event) => setDay(event.target.value)} />
+            <Input type="time" aria-label={t('calendar.time')} value={time} onChange={(event) => setTime(event.target.value)} />
           </div>
           <Textarea
-            aria-label="Текст"
-            placeholder="Текст"
+            aria-label={t('common.text')}
+            placeholder={t('common.text')}
             className="min-h-24"
             maxLength={10_000}
             value={body}
@@ -79,13 +80,13 @@ export function NoteDialog({ note, date, onClose, onSave, onDelete }: NoteDialog
           <DialogFooter className="sm:justify-between">
             {note ? (
               <Button type="button" variant="destructive" onClick={() => setConfirmingDelete(true)}>
-                Удалить
+                {t('common.delete')}
               </Button>
             ) : (
               <span />
             )}
             <Button type="submit" disabled={!valid}>
-              Сохранить
+              {t('common.save')}
             </Button>
           </DialogFooter>
         </form>
@@ -93,13 +94,13 @@ export function NoteDialog({ note, date, onClose, onSave, onDelete }: NoteDialog
         <AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Удалить заметку?</AlertDialogTitle>
-              <AlertDialogDescription>Отменить это нельзя.</AlertDialogDescription>
+              <AlertDialogTitle>{t('calendar.deleteNote')}</AlertDialogTitle>
+              <AlertDialogDescription>{t('common.cannotUndo')}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Отмена</AlertDialogCancel>
+              <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
               <AlertDialogAction variant="destructive" onClick={onDelete}>
-                Удалить
+                {t('common.delete')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

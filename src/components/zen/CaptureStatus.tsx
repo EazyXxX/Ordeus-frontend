@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 
+import { t } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import type { Capture } from './useCaptures'
 
@@ -49,10 +50,10 @@ export function CaptureStatus({
           </p>
           <div className="mt-2 flex gap-2">
             <Button size="sm" variant="outline" onClick={() => run(() => onRetry(capture.id))}>
-              Повторить
+              {t('common.retry')}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => run(() => onDelete(capture.id))}>
-              Удалить
+              {t('common.delete')}
             </Button>
           </div>
         </div>

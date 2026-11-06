@@ -24,6 +24,7 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable'
 
+import { t } from '@/i18n'
 import { cn } from '@/lib/utils'
 import * as api from './api'
 import { BOARD_QUERY_KEY, type Card, type Column } from './api'
@@ -163,8 +164,8 @@ export function KanbanBoard({ columns: savedColumns, filter, save, onOpenCard }:
         </SortableContext>
         <div className="w-72 shrink-0">
           <InlineAdd
-            label="Добавить колонку"
-            placeholder="Название колонки"
+            label={t('tasks.addColumn')}
+            placeholder={t('tasks.columnName')}
             onSubmit={(title) => save(() => api.createColumn(title))}
           />
         </div>

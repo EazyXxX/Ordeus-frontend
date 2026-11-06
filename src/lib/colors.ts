@@ -1,15 +1,16 @@
+import { t } from '@/i18n'
 export const COLORS = ['gray', 'red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink'] as const
 export type Color = (typeof COLORS)[number]
 
 export const COLOR_LABELS: Record<Color, string> = {
-  gray: 'Серый',
-  red: 'Красный',
-  orange: 'Оранжевый',
-  yellow: 'Жёлтый',
-  green: 'Зелёный',
-  blue: 'Синий',
-  purple: 'Фиолетовый',
-  pink: 'Розовый',
+  gray: t('color.gray'),
+  red: t('color.red'),
+  orange: t('color.orange'),
+  yellow: t('color.yellow'),
+  green: t('color.green'),
+  blue: t('color.blue'),
+  purple: t('color.purple'),
+  pink: t('color.pink'),
 }
 
 // Full class names, so Tailwind can find them when it scans the source.

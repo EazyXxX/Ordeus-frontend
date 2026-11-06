@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
+import { t } from '@/i18n'
 import { request } from '@/lib/api'
 import { toWav } from './audio'
 
@@ -16,10 +17,10 @@ type Status = 'idle' | 'recording' | 'transcribing'
 
 function describeError(error: unknown) {
   if (error instanceof DOMException) {
-    if (error.name === 'NotAllowedError') return 'Нет доступа к микрофону. Разрешите его в настройках браузера.'
-    if (error.name === 'NotFoundError') return 'Микрофон не найден.'
+    if (error.name === 'NotAllowedError') return t('zen.noMic')
+    if (error.name === 'NotFoundError') return t('zen.micMissing')
   }
-  return 'Не удалось распознать речь. Проверьте, что Ollama запущена и выбранная модель понимает аудио.'
+  return t('zen.voiceFailed')
 }
 
 export function useVoiceInput(onText: (text: string) => void) {

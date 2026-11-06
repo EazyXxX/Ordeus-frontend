@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { ArrowDown, ArrowUp, CalendarDays } from 'lucide-react'
 
+import { locale, t } from '@/i18n'
 import { COLOR_DOT } from '@/lib/colors'
 import { cn } from '@/lib/utils'
 import type { Card, Column } from './api'
@@ -11,7 +12,7 @@ type SortKey = 'title' | 'status' | 'priority' | 'due'
 type Sort = { key: SortKey; direction: 1 | -1 }
 type Row = { card: Card; column: Column; order: number }
 
-const collator = new Intl.Collator('ru-RU')
+const collator = new Intl.Collator(locale)
 
 const COMPARE: Record<Exclude<SortKey, 'due'>, (a: Row, b: Row) => number> = {
   title: (a, b) => collator.compare(a.card.title, b.card.title),
@@ -83,24 +84,24 @@ export function TaskList({ columns, onAddCard, onOpenCard }: TaskListProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-4">
       {rows.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Задач не найдено.</p>
+        <p className="text-sm text-muted-foreground">{t('tasks.none')}</p>
       ) : (
         <div className="overflow-hidden rounded-lg border">
           <table className="w-full table-fixed text-sm">
             <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
               <tr>
-                <SortHeader sortKey="title" label="Задача" sort={sort} onSort={changeSort} />
-                <SortHeader sortKey="status" label="Статус" sort={sort} className="hidden w-32 sm:table-cell md:w-44" onSort={changeSort} />
+                <SortHeader sortKey="title" label={t('tasks.task')} sort={sort} onSort={changeSort} />
+                <SortHeader sortKey="status" label={t('tasks.status')} sort={sort} className="hidden w-32 sm:table-cell md:w-44" onSort={changeSort} />
                 <SortHeader
                   sortKey="priority"
-                  label="Приоритет"
+                  label={t('common.priority')}
                   sort={sort}
                   className="hidden w-36 md:table-cell"
                   onSort={changeSort}
                 />
-                <SortHeader sortKey="due" label="Срок" sort={sort} className="hidden w-28 sm:table-cell" onSort={changeSort} />
+                <SortHeader sortKey="due" label={t('common.due')} sort={sort} className="hidden w-28 sm:table-cell" onSort={changeSort} />
                 <th scope="col" className="hidden w-24 px-3 py-2 text-left font-medium lg:table-cell">
-                  Чек-лист
+                  {t('tasks.checklist')}
                 </th>
               </tr>
             </thead>
@@ -188,8 +189,8 @@ export function TaskList({ columns, onAddCard, onOpenCard }: TaskListProps) {
       {firstColumn && (
         <div className="max-w-sm">
           <InlineAdd
-            label={`Добавить задачу в «${firstColumn.title}»`}
-            placeholder="Название задачи"
+            label={t('tasks.addTo', { name: firstColumn.title })}
+            placeholder={t('tasks.taskName')}
             onSubmit={(title) => onAddCard(firstColumn.id, title)}
           />
         </div>

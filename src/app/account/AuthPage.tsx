@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Link, Navigate, useSearchParams } from 'react-router'
 
+import { t } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ApiError } from '@/lib/api'
@@ -13,18 +14,18 @@ const MIN_PASSWORD_LENGTH = 8
 
 function describeError(error: unknown, mode: Mode) {
   if (error instanceof ApiError) {
-    if (error.status === 401) return 'Неверная почта или пароль.'
+    if (error.status === 401) return t('auth.badCredentials')
     if (error.status === 409) {
-      return mode === 'register' ? 'Эта почта уже зарегистрирована.' : 'На этом устройстве слишком много аккаунтов.'
+      return mode === 'register' ? t('auth.emailTaken') : t('auth.tooManyAccounts')
     }
-    if (error.status === 400) return 'Проверьте почту, имя и пароль.'
+    if (error.status === 400) return t('auth.checkFields')
   }
-  return 'Не удалось связаться с сервером.'
+  return t('common.serverUnreachable')
 }
 
 const COPY = {
-  login: { title: 'Вход в Ordeus', action: 'Войти', hint: 'Нет аккаунта?', link: 'Зарегистрироваться' },
-  register: { title: 'Новый аккаунт', action: 'Создать аккаунт', hint: 'Уже есть аккаунт?', link: 'Войти' },
+  login: { title: t('auth.loginTitle'), action: t('common.signIn'), hint: t('auth.noAccount'), link: t('auth.register') },
+  register: { title: t('auth.registerTitle'), action: t('auth.create'), hint: t('auth.hasAccount'), link: t('common.signIn') },
 }
 
 export function AuthPage({ mode }: { mode: Mode }) {
@@ -58,15 +59,15 @@ export function AuthPage({ mode }: { mode: Mode }) {
       <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border bg-card p-6 shadow-sm">
         <div className="mb-2 flex items-center gap-2">
           <img src="/favicon.svg" alt="" className="size-6 dark:invert" />
-          <h1 className="text-lg font-medium">{adding ? 'Добавить аккаунт' : copy.title}</h1>
+          <h1 className="text-lg font-medium">{adding ? t('common.addAccount') : copy.title}</h1>
         </div>
 
         {mode === 'register' && (
           <Input
             required
             autoFocus
-            aria-label="Имя"
-            placeholder="Имя"
+            aria-label={t('common.name')}
+            placeholder={t('common.name')}
             autoComplete="name"
             maxLength={100}
             value={name}
@@ -77,8 +78,8 @@ export function AuthPage({ mode }: { mode: Mode }) {
           required
           autoFocus={mode === 'login'}
           type="email"
-          aria-label="Почта"
-          placeholder="Почта"
+          aria-label={t('common.email')}
+          placeholder={t('common.email')}
           autoComplete="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
@@ -86,8 +87,8 @@ export function AuthPage({ mode }: { mode: Mode }) {
         <Input
           required
           type="password"
-          aria-label="Пароль"
-          placeholder={mode === 'register' ? `Пароль, не короче ${MIN_PASSWORD_LENGTH} символов` : 'Пароль'}
+          aria-label={t('common.password')}
+          placeholder={mode === 'register' ? t('auth.passwordRule', { count: MIN_PASSWORD_LENGTH }) : t('common.password')}
           autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
           minLength={mode === 'register' ? MIN_PASSWORD_LENGTH : undefined}
           value={password}
@@ -111,7 +112,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
         </p>
         {adding && (
           <Link to="/" className="text-center text-sm text-muted-foreground underline underline-offset-4">
-            Вернуться в приложение
+            {t('auth.back')}
           </Link>
         )}
       </form>

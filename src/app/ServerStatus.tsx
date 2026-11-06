@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { t } from '@/i18n'
 import { fetchHealth } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
@@ -15,12 +16,12 @@ export function ServerStatus() {
 
   const healthy = data?.database === 'up' && !isError
   const label = isPending
-    ? 'Проверяем сервер'
+    ? t('server.checking')
     : isError
-      ? 'Сервер недоступен'
+      ? t('server.down')
       : healthy
-        ? 'Сервер работает'
-        : 'База недоступна'
+        ? t('server.up')
+        : t('server.dbDown')
 
   return (
     <div role="status" title={label} className="flex h-8 items-center gap-2 px-2 text-xs text-muted-foreground">

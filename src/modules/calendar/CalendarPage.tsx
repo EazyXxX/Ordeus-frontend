@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
+import { t } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import * as api from './api'
@@ -12,8 +13,8 @@ import { DayPanel } from './DayPanel'
 import { NoteDialog } from './NoteDialog'
 
 const VIEWS: { value: View; label: string }[] = [
-  { value: 'month', label: 'Месяц' },
-  { value: 'week', label: 'Неделя' },
+  { value: 'month', label: t('calendar.month') },
+  { value: 'week', label: t('calendar.week') },
 ]
 
 function groupByDate<Item extends { date: string }>(items: Item[]) {
@@ -75,17 +76,17 @@ export default function CalendarPage() {
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto xl:flex-row xl:overflow-hidden">
       <div className="flex min-w-0 flex-col gap-3 p-4 xl:flex-1 xl:overflow-y-auto">
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="icon" aria-label="Назад" onClick={() => step(-1)}>
+          <Button variant="outline" size="icon" aria-label={t('calendar.back')} onClick={() => step(-1)}>
             <ChevronLeft />
           </Button>
-          <Button variant="outline" size="icon" aria-label="Вперёд" onClick={() => step(1)}>
+          <Button variant="outline" size="icon" aria-label={t('calendar.forward')} onClick={() => step(1)}>
             <ChevronRight />
           </Button>
           <Button variant="outline" onClick={goToday}>
-            Сегодня
+            {t('calendar.today')}
           </Button>
           <h2 className="text-base font-medium">{view === 'month' ? formatMonth(anchor) : formatWeek(days)}</h2>
-          <div role="group" aria-label="Вид календаря" className="ml-auto flex gap-1">
+          <div role="group" aria-label={t('calendar.view')} className="ml-auto flex gap-1">
             {VIEWS.map(({ value, label }) => (
               <button
                 key={value}
@@ -105,14 +106,14 @@ export default function CalendarPage() {
 
         {saveFailed && (
           <p role="alert" className="text-sm text-destructive">
-            Не удалось сохранить изменения.
+            {t('common.saveFailed')}
           </p>
         )}
         {isError && (
           <div role="alert" className="flex items-center gap-3 text-sm text-destructive">
-            Не удалось загрузить календарь.
+            {t('calendar.loadFailed')}
             <Button variant="outline" size="sm" onClick={() => refetch()}>
-              Повторить
+              {t('common.retry')}
             </Button>
           </div>
         )}

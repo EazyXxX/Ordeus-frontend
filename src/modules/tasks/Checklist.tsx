@@ -1,6 +1,7 @@
 import { useRef, useState, type KeyboardEvent } from 'react'
 import { X } from 'lucide-react'
 
+import { t } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -34,12 +35,12 @@ export function Checklist({ items, onChange }: ChecklistProps) {
   }
 
   return (
-    <section aria-label="Чек-лист" className="flex flex-col gap-2">
+    <section aria-label={t('tasks.checklist')} className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">Чек-лист</h3>
+        <h3 className="text-sm font-medium">{t('tasks.checklist')}</h3>
         {items.length > 0 && (
           <span className="text-xs text-muted-foreground">
-            {done} из {items.length}
+            {t('tasks.progress', { done, total: items.length })}
           </span>
         )}
       </div>
@@ -51,12 +52,12 @@ export function Checklist({ items, onChange }: ChecklistProps) {
       {items.map((item) => (
         <div key={item.key} className="flex items-center gap-2">
           <Checkbox
-            aria-label={`Выполнено: ${item.title}`}
+            aria-label={t('tasks.itemDone', { name: item.title })}
             checked={item.done}
             onCheckedChange={(checked) => update(item.key, { done: checked === true })}
           />
           <Input
-            aria-label="Пункт чек-листа"
+            aria-label={t('tasks.itemName')}
             className={item.done ? 'h-8 text-muted-foreground line-through' : 'h-8'}
             maxLength={200}
             value={item.title}
@@ -66,7 +67,7 @@ export function Checklist({ items, onChange }: ChecklistProps) {
             type="button"
             variant="ghost"
             size="icon-xs"
-            aria-label={`Удалить пункт ${item.title}`}
+            aria-label={t('tasks.deleteItem', { name: item.title })}
             onClick={() => onChange(items.filter((other) => other.key !== item.key))}
           >
             <X />
@@ -74,9 +75,9 @@ export function Checklist({ items, onChange }: ChecklistProps) {
         </div>
       ))}
       <Input
-        aria-label="Новый пункт"
+        aria-label={t('tasks.newItem')}
         className="h-8"
-        placeholder="Добавить пункт и нажать Enter"
+        placeholder={t('tasks.addItem')}
         maxLength={200}
         value={draft}
         onChange={(event) => setDraft(event.target.value)}

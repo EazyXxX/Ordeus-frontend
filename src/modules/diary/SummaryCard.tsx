@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Loader2, RefreshCw, Trash2 } from 'lucide-react'
 
+import { t } from '@/i18n'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { weekLabel } from '@/lib/dates'
@@ -24,10 +25,10 @@ export function SummaryCard({ summary, onRedo, onDelete }: SummaryCardProps) {
         <p className="text-xs text-muted-foreground">{weekLabel(summary.week)}</p>
         {!isWorking(summary) && (
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon-xs" aria-label="Подвести итоги недели заново" onClick={onRedo}>
+            <Button variant="ghost" size="icon-xs" aria-label={t('journal.redoWeek')} onClick={onRedo}>
               <RefreshCw />
             </Button>
-            <Button variant="ghost" size="icon-xs" aria-label="Удалить итоги недели" onClick={() => setConfirming(true)}>
+            <Button variant="ghost" size="icon-xs" aria-label={t('journal.deleteWeek')} onClick={() => setConfirming(true)}>
               <Trash2 />
             </Button>
           </div>
@@ -37,12 +38,12 @@ export function SummaryCard({ summary, onRedo, onDelete }: SummaryCardProps) {
       {isWorking(summary) && (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="size-4 animate-spin" aria-hidden />
-          Нейросеть читает записи этой недели…
+          {t('journal.readingWeek')}
         </p>
       )}
 
       {summary.status === 'failed' && (
-        <p className="text-sm text-muted-foreground">Не удалось подвести итоги. Попробуйте ещё раз.</p>
+        <p className="text-sm text-muted-foreground">{t('journal.weekRetry')}</p>
       )}
 
       {summary.status === 'done' && (
@@ -54,7 +55,7 @@ export function SummaryCard({ summary, onRedo, onDelete }: SummaryCardProps) {
 
           {summary.highlights.length > 0 && (
             <section className="flex flex-col gap-1.5">
-              <h3 className="text-xs font-medium text-muted-foreground">Главное</h3>
+              <h3 className="text-xs font-medium text-muted-foreground">{t('journal.highlights')}</h3>
               <ul className="flex list-disc flex-col gap-1 pl-4 text-sm">
                 {summary.highlights.map((highlight) => (
                   <li key={highlight}>{highlight}</li>
@@ -65,7 +66,7 @@ export function SummaryCard({ summary, onRedo, onDelete }: SummaryCardProps) {
 
           {summary.focus && (
             <section className="flex flex-col gap-1.5">
-              <h3 className="text-xs font-medium text-muted-foreground">На что обратить внимание</h3>
+              <h3 className="text-xs font-medium text-muted-foreground">{t('journal.focus')}</h3>
               <p className="text-sm">{summary.focus}</p>
             </section>
           )}
@@ -76,15 +77,15 @@ export function SummaryCard({ summary, onRedo, onDelete }: SummaryCardProps) {
                 {theme}
               </Badge>
             ))}
-            <span className="ml-auto text-xs text-muted-foreground">Записей: {summary.noteCount}</span>
+            <span className="ml-auto text-xs text-muted-foreground">{t('journal.noteCount', { count: summary.noteCount })}</span>
           </div>
         </>
       )}
 
       {confirming && (
         <ConfirmDelete
-          title="Удалить итоги этой недели?"
-          description="Записи останутся. Итоги можно будет подвести заново."
+          title={t('journal.confirmWeek')}
+          description={t('journal.confirmWeekText')}
           onCancel={() => setConfirming(false)}
           onConfirm={onDelete}
         />

@@ -12,7 +12,7 @@
 
 ## Стек
 
-React, TypeScript, Vite, Tailwind CSS, shadcn/ui, React Router, TanStack Query, dnd-kit, react-force-graph, emojibase, Literata.
+React, TypeScript, Vite, Tailwind CSS, shadcn/ui, React Router, TanStack Query, dnd-kit, react-force-graph, emojibase, Literata, i18next.
 
 ## Запуск
 
@@ -39,6 +39,7 @@ src/app/               оболочка приложения, главная с�
 src/app/account/       вход, переключение аккаунтов и личный кабинет
 src/components/        общие компоненты
 src/components/zen/    поле ввода, голос и очередь дзен-режимов
+src/i18n/              языки интерфейса: ru.json и en.json
 src/lib/               API-клиент и общие помощники
 src/modules/           разделы органайзера
 src/modules/registry.ts  список разделов
@@ -47,6 +48,12 @@ src/modules/registry.ts  список разделов
 ## Новый раздел
 
 Создайте страницу в `src/modules/<name>/` и добавьте запись в `src/modules/registry.ts`. Пункт меню и маршрут появятся сами. Ссылку на раздел стоит добавить и на главную, в `src/app/HomePage.tsx`.
+
+## Языки
+
+Интерфейс работает на русском и английском. Язык берётся из настроек аккаунта, а до входа из локали браузера. Сменить его можно в личном кабинете, после смены страница перезагружается.
+
+Весь текст лежит в `src/i18n/ru.json` и `src/i18n/en.json`, а в коде вызывается через `t('ключ')` из `@/i18n`. Новую строку нужно добавить в оба файла. TypeScript не даст использовать ключ, которого нет.
 
 ## Адаптив
 

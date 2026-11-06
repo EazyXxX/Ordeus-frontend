@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
+import { locale, t } from '@/i18n'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { parseLocalDate } from '@/lib/dates'
 import { cn } from '@/lib/utils'
@@ -11,7 +12,7 @@ import { MOODS } from './moods'
 import { useDays } from './useDays'
 
 const SCORES = Array.from({ length: 10 }, (_, index) => index + 1)
-const dayFormat = new Intl.DateTimeFormat('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })
+const dayFormat = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' })
 
 type DayDialogProps = {
   date: string
@@ -29,7 +30,7 @@ export function DayDialog({ date, onClose }: DayDialogProps) {
   const mark = useMutation({
     mutationFn: (next: Pick<api.Day, 'moods' | 'score'>) => api.updateDay(date, next),
     onSettled: refresh,
-    onError: () => toast.error('Не удалось сохранить оценку дня'),
+    onError: () => toast.error(t('journal.scoreFailed')),
   })
 
   function toggleMood(mood: api.Mood) {
@@ -42,10 +43,10 @@ export function DayDialog({ date, onClose }: DayDialogProps) {
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="first-letter:uppercase">{dayFormat.format(parseLocalDate(date))}</DialogTitle>
-          <DialogDescription>Как прошёл этот день? Можно выбрать несколько эмоций.</DialogDescription>
+          <DialogDescription>{t('journal.howWasDay')}</DialogDescription>
         </DialogHeader>
 
-        <div role="group" aria-label="Настроение" className="grid grid-cols-3 gap-1 sm:grid-cols-4">
+        <div role="group" aria-label={t('journal.mood')} className="grid grid-cols-3 gap-1 sm:grid-cols-4">
           {MOODS.map((option) => (
             <button
               key={option.value}
@@ -66,8 +67,8 @@ export function DayDialog({ date, onClose }: DayDialogProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-medium text-muted-foreground">Насколько день был хорош</p>
-          <div role="group" aria-label="Оценка дня" className="grid grid-cols-10 gap-1">
+          <p className="text-xs font-medium text-muted-foreground">{t('journal.howGood')}</p>
+          <div role="group" aria-label={t('journal.score')} className="grid grid-cols-10 gap-1">
             {SCORES.map((value) => (
               <button
                 key={value}

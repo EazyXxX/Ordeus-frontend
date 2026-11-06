@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { BookOpen, CalendarCheck } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { t } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import { localDate } from '@/lib/dates'
 import * as api from './api'
@@ -48,22 +49,22 @@ export function DiaryRetrospective({ onOpenDay }: DiaryRetrospectiveProps) {
     <section className="flex flex-col gap-3 rounded-xl border bg-card p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-sm font-medium">Последние 30 дней</h2>
+          <h2 className="text-sm font-medium">{t('journal.last30')}</h2>
           <p className="text-xs text-muted-foreground">
             {average === null
-              ? 'Оцените день, и здесь появится ретроспектива'
-              : `Средняя оценка ${average.toFixed(1)} из 10, оценено дней: ${scores.length}`}
+              ? t('journal.rateToSee')
+              : t('journal.average', { average: average.toFixed(1), count: scores.length })}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => onOpenDay(today)}>
             {todayMoods.length > 0 ? <span aria-hidden>{todayMoods.map((mood) => mood.emoji).join('')}</span> : <CalendarCheck />}
-            {todayScore ? `Сегодня ${todayScore}/10` : 'Оценить сегодня'}
+            {todayScore ? t('journal.todayScore', { score: todayScore }) : t('journal.rateToday')}
           </Button>
           <Button asChild>
             <Link to="/diary/book">
               <BookOpen />
-              Читать как книгу
+              {t('journal.readBook')}
             </Link>
           </Button>
         </div>

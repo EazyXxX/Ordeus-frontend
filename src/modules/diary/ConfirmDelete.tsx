@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,9 +26,9 @@ export function ConfirmDelete({ title, description, onCancel, onConfirm }: Confi
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Отмена</AlertDialogCancel>
+          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={onConfirm}>
-            Удалить
+            {t('common.delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

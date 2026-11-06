@@ -1,5 +1,6 @@
 import { Link, NavLink, useLocation } from 'react-router'
 
+import { t } from '@/i18n'
 import { AccountMenu } from '@/app/account/AccountMenu'
 import { ServerStatus } from '@/app/ServerStatus'
 import { ThemeMenu } from '@/app/ThemeMenu'
@@ -27,7 +28,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <Link
           to="/"
-          aria-label="Ordeus, на главную"
+          aria-label={t('nav.homeLink')}
           onClick={() => setOpenMobile(false)}
           className="flex h-8 items-center gap-2 rounded-md px-2 outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring group-data-[collapsible=icon]:px-1.5"
         >

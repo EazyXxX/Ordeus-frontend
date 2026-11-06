@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { X } from 'lucide-react'
 
+import { t } from '@/i18n'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -75,22 +76,22 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
       >
         <form onSubmit={submit} className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
           <DialogHeader>
-            <DialogTitle>{note ? 'Запись' : 'Новая запись'}</DialogTitle>
-            <DialogDescription className="sr-only">Текст, папка, теги и связи записи</DialogDescription>
+            <DialogTitle>{note ? t('common.noteButton') : t('zen.newNote')}</DialogTitle>
+            <DialogDescription className="sr-only">{t('note.hint')}</DialogDescription>
           </DialogHeader>
 
           <div className="grid min-h-0 flex-1 grid-rows-[minmax(16rem,1fr)_auto] gap-4 overflow-y-auto md:grid-cols-[minmax(0,1fr)_16rem] md:grid-rows-1 md:overflow-hidden">
             <div className="flex min-h-0 min-w-0 flex-col gap-3">
               <Input
-                aria-label="Заголовок"
-                placeholder="Заголовок"
+                aria-label={t('note.heading')}
+                placeholder={t('note.heading')}
                 maxLength={200}
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
               />
               <Textarea
-                aria-label="Текст"
-                placeholder="Текст"
+                aria-label={t('common.text')}
+                placeholder={t('common.text')}
                 className="min-h-0 flex-1 resize-none field-sizing-fixed break-words"
                 maxLength={50_000}
                 value={body}
@@ -100,12 +101,12 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
 
             <aside className="flex min-w-0 flex-col gap-3 md:overflow-y-auto">
               <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
-                День в ежедневнике
+                {t('note.journalDay')}
                 <Input type="date" value={dailyDate} onChange={(event) => setDailyDate(event.target.value)} />
               </label>
               <Input
-                aria-label="Папка"
-                placeholder="Папка"
+                aria-label={t('note.folder')}
+                placeholder={t('note.folder')}
                 list="diary-folders"
                 maxLength={200}
                 value={folder}
@@ -117,14 +118,14 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
                 ))}
               </datalist>
               <Input
-                aria-label="Теги через запятую"
-                placeholder="Теги через запятую"
+                aria-label={t('note.tags')}
+                placeholder={t('note.tags')}
                 value={tags}
                 onChange={(event) => setTags(event.target.value)}
               />
 
               <div className="flex min-w-0 flex-col gap-2">
-                <p className="text-sm font-medium">Связанные записи</p>
+                <p className="text-sm font-medium">{t('note.linked')}</p>
                 {links.map((link) => (
                   <div key={link.id} className="flex min-w-0 items-center gap-2 rounded-md bg-muted/60 py-1 pr-1 pl-2.5 text-sm">
                     <span className="min-w-0 flex-1 truncate">{link.title}</span>
@@ -132,7 +133,7 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
                       type="button"
                       variant="ghost"
                       size="icon-xs"
-                      aria-label={`Убрать связь с записью ${link.title}`}
+                      aria-label={t('note.removeLink', { name: link.title })}
                       onClick={() => setLinks(links.filter((other) => other.id !== link.id))}
                     >
                       <X />
@@ -140,12 +141,12 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
                   </div>
                 ))}
                 <select
-                  aria-label="Добавить связь"
+                  aria-label={t('note.addLink')}
                   className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2 text-sm text-muted-foreground"
                   value=""
                   onChange={(event) => addLink(event.target.value)}
                 >
-                  <option value="">Добавить связь…</option>
+                  <option value="">{t('note.addLinkOption')}</option>
                   {linkOptions.map((other) => (
                     <option key={other.id} value={other.id}>
                       {other.title}
@@ -159,13 +160,13 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
           <DialogFooter className="sm:justify-between">
             {note ? (
               <Button type="button" variant="destructive" onClick={() => setConfirmingDelete(true)}>
-                Удалить
+                {t('common.delete')}
               </Button>
             ) : (
               <span />
             )}
             <Button type="submit" disabled={!title.trim()}>
-              Сохранить
+              {t('common.save')}
             </Button>
           </DialogFooter>
         </form>
@@ -173,13 +174,13 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
         <AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Удалить запись?</AlertDialogTitle>
-              <AlertDialogDescription>Отменить это нельзя.</AlertDialogDescription>
+              <AlertDialogTitle>{t('note.deleteNote')}</AlertDialogTitle>
+              <AlertDialogDescription>{t('common.cannotUndo')}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Отмена</AlertDialogCancel>
+              <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
               <AlertDialogAction variant="destructive" onClick={onDelete}>
-                Удалить
+                {t('common.delete')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

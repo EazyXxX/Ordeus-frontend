@@ -1,11 +1,20 @@
 import { CheckSquare } from 'lucide-react'
 
+import { locale, t } from '@/i18n'
 import { COLOR_DOT, type Color } from '@/lib/colors'
 import { cn } from '@/lib/utils'
 import type { CalendarNote, CalendarTask } from './api'
 import { toKey } from './dates'
 
-const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+const WEEKDAYS = [
+  t('weekday.mon'),
+  t('weekday.tue'),
+  t('weekday.wed'),
+  t('weekday.thu'),
+  t('weekday.fri'),
+  t('weekday.sat'),
+  t('weekday.sun'),
+]
 const MONTH_CELL_ITEMS = 3
 
 export type View = 'month' | 'week'
@@ -60,7 +69,7 @@ function DayCell({ day, view, outside, today, selected, notes, tasks, onSelect }
     <button
       type="button"
       aria-pressed={selected}
-      aria-label={`${day.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}, записей: ${total}`}
+      aria-label={t('calendar.dayLabel', { date: day.toLocaleDateString(locale, { day: 'numeric', month: 'long' }), count: total })}
       onClick={onSelect}
       className={cn(
         'flex min-w-0 flex-col gap-1 border-r border-b bg-background p-1 text-left outline-none hover:bg-muted/30 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring',
@@ -85,7 +94,7 @@ function DayCell({ day, view, outside, today, selected, notes, tasks, onSelect }
         {visible.map((item) => (
           <Chip key={item.id} label={item.label} color={item.color} task={item.task} />
         ))}
-        {hidden > 0 && <span className="px-1 text-xs text-muted-foreground">ещё {hidden}</span>}
+        {hidden > 0 && <span className="px-1 text-xs text-muted-foreground">{t('calendar.more', { count: hidden })}</span>}
       </span>
       {total > 0 && !week && (
         <span className="flex flex-wrap justify-center gap-0.5 md:hidden" aria-hidden>

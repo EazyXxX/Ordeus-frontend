@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2, RefreshCw, Sparkles, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { t } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import { ApiError } from '@/lib/api'
 import * as api from './api'
@@ -35,22 +36,22 @@ export function DaySummary({ date, day, notes }: DaySummaryProps) {
     onError: (error) =>
       toast.error(
         error instanceof ApiError && error.status === 409
-          ? 'Сначала нужна хотя бы одна запись за этот день'
-          : 'Не удалось подвести итог дня',
+          ? t('journal.needNote')
+          : t('journal.summaryFailed'),
       ),
   })
 
   const remove = useMutation({
     mutationFn: () => api.deleteDaySummary(date),
     onSuccess: refresh,
-    onError: () => toast.error('Не удалось удалить итог дня'),
+    onError: () => toast.error(t('journal.deleteFailed')),
   })
 
   if (working) {
     return (
       <p className="flex items-center gap-2 text-sm text-muted-foreground">
         <Loader2 className="size-4 animate-spin" aria-hidden />
-        Нейросеть читает записи этого дня…
+        {t('journal.readingDay')}
       </p>
     )
   }
@@ -60,10 +61,10 @@ export function DaySummary({ date, day, notes }: DaySummaryProps) {
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="ghost" size="xs" disabled={summarize.isPending} onClick={() => summarize.mutate()}>
           <Sparkles />
-          Подвести итог дня
+          {t('journal.summarizeDay')}
         </Button>
         {day?.summaryStatus === 'failed' && (
-          <p className="text-xs text-muted-foreground">Не удалось подвести итог. Попробуйте ещё раз.</p>
+          <p className="text-xs text-muted-foreground">{t('journal.summaryRetry')}</p>
         )}
       </div>
     )
@@ -73,28 +74,28 @@ export function DaySummary({ date, day, notes }: DaySummaryProps) {
     <div className="flex items-start gap-2 border-l-2 pl-3 text-sm text-muted-foreground">
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <p>{day.summary}</p>
-        {day.focus && <p>На завтра: {day.focus}</p>}
-        {outdated && <p className="text-xs text-foreground">Записи изменились после этого итога.</p>}
+        {day.focus && <p>{t('journal.tomorrow', { text: day.focus })}</p>}
+        {outdated && <p className="text-xs text-foreground">{t('journal.outdated')}</p>}
       </div>
       <div className="flex shrink-0 gap-1">
         <Button
           variant={outdated ? 'outline' : 'ghost'}
           size="icon-xs"
-          aria-label="Подвести итог дня заново"
+          aria-label={t('journal.redoDay')}
           disabled={summarize.isPending}
           onClick={() => summarize.mutate()}
         >
           <RefreshCw />
         </Button>
-        <Button variant="ghost" size="icon-xs" aria-label="Удалить итог дня" onClick={() => setConfirming(true)}>
+        <Button variant="ghost" size="icon-xs" aria-label={t('journal.deleteDay')} onClick={() => setConfirming(true)}>
           <Trash2 />
         </Button>
       </div>
 
       {confirming && (
         <ConfirmDelete
-          title="Удалить итог этого дня?"
-          description="Записи останутся. Итог можно будет подвести заново."
+          title={t('journal.confirmDay')}
+          description={t('journal.confirmDayText')}
           onCancel={() => setConfirming(false)}
           onConfirm={() => remove.mutate()}
         />

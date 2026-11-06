@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -16,7 +17,7 @@ type ColorSubmenuProps = {
 export function ColorSubmenu({ value, onChange }: ColorSubmenuProps) {
   return (
     <DropdownMenuSub>
-      <DropdownMenuSubTrigger>Цвет</DropdownMenuSubTrigger>
+      <DropdownMenuSubTrigger>{t('common.color')}</DropdownMenuSubTrigger>
       <DropdownMenuSubContent>
         <DropdownMenuRadioGroup value={value} onValueChange={(next) => onChange(next as Color)}>
           {COLORS.map((color) => (

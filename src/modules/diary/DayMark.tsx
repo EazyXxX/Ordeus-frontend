@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import type { Day } from './api'
 import { moodsOf } from './moods'
@@ -14,7 +15,7 @@ export function DayMark({ day, onClick }: DayMarkProps) {
 
   return (
     <Button variant="ghost" size="xs" onClick={onClick} className="shrink-0 gap-1.5 text-muted-foreground">
-      {!marked && 'Оценить день'}
+      {!marked && t('journal.rateDay')}
       {moods.length > 0 && (
         <span role="img" aria-label={moods.map((mood) => mood.label).join(', ')} className="text-sm">
           {moods.map((mood) => mood.emoji).join('')}

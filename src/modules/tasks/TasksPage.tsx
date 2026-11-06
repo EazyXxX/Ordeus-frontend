@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocation, useSearchParams } from 'react-router'
 
+import { t } from '@/i18n'
 import { ModeTabs } from '@/components/ModeTabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,9 +20,9 @@ import { TasksZen } from './TasksZen'
 const LIST_PATH = '/tasks/list'
 const ZEN_PATH = '/tasks/zen'
 const TABS = [
-  { to: '/tasks', label: 'Канбан' },
-  { to: LIST_PATH, label: 'Список' },
-  { to: ZEN_PATH, label: 'Дзен' },
+  { to: '/tasks', label: t('tasks.kanban') },
+  { to: LIST_PATH, label: t('tasks.list') },
+  { to: ZEN_PATH, label: t('tasks.zen') },
 ]
 
 function Tasks({ columns }: { columns: Column[] }) {
@@ -44,8 +45,8 @@ function Tasks({ columns }: { columns: Column[] }) {
     queryKey: api.CAPTURES_KEY,
     fetchCaptures: api.fetchCaptures,
     resultKey: BOARD_QUERY_KEY,
-    doneMessage: 'Задачи добавлены на доску',
-    failedMessage: 'Не удалось создать задачи. Текст сохранён на вкладке «Канбан».',
+    doneMessage: t('tasks.addedToBoard'),
+    failedMessage: t('tasks.createFailed'),
   })
 
   const showList = pathname === LIST_PATH
@@ -71,11 +72,11 @@ function Tasks({ columns }: { columns: Column[] }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <ModeTabs label="Вид задач" tabs={TABS} />
+      <ModeTabs label={t('tasks.view')} tabs={TABS} />
 
       {saveFailed && (
         <p role="alert" className="border-b bg-destructive/10 px-4 py-2 text-sm text-destructive">
-          Не удалось сохранить изменения. Показано последнее сохранённое состояние.
+          {t('tasks.saveFailed')}
         </p>
       )}
 
@@ -84,8 +85,8 @@ function Tasks({ columns }: { columns: Column[] }) {
           <CaptureStatus
             active={captures.active}
             failed={captures.failed}
-            activeLabel="Нейросеть создаёт задачи"
-            failedLabel="Не удалось создать задачи, но текст сохранён."
+            activeLabel={t('tasks.creating')}
+            failedLabel={t('tasks.createFailedShort')}
             queryKey={api.CAPTURES_KEY}
             onRetry={api.retryCapture}
             onDelete={api.deleteCapture}
@@ -97,19 +98,19 @@ function Tasks({ columns }: { columns: Column[] }) {
         <div className="flex shrink-0 flex-wrap items-center gap-2 border-b px-4 py-2">
           <Input
             type="search"
-            aria-label="Поиск по задачам"
-            placeholder="Поиск по задачам"
+            aria-label={t('tasks.search')}
+            placeholder={t('tasks.search')}
             className="h-8 w-full sm:w-56"
             value={filter.query}
             onChange={(event) => setFilter({ ...filter, query: event.target.value })}
           />
           <select
-            aria-label="Фильтр по приоритету"
+            aria-label={t('tasks.priorityFilter')}
             className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm"
             value={filter.priority}
             onChange={(event) => setFilter({ ...filter, priority: event.target.value as Priority | 'all' })}
           >
-            <option value="all">Все приоритеты</option>
+            <option value="all">{t('tasks.allPriorities')}</option>
             {PRIORITIES.map((value) => (
               <option key={value} value={value}>
                 {PRIORITY_LABELS[value]}
@@ -117,9 +118,9 @@ function Tasks({ columns }: { columns: Column[] }) {
             ))}
           </select>
           <p className="ml-auto text-xs text-muted-foreground">
-            {filtering && !showList ? 'При фильтре перетаскивание отключено · ' : ''}
-            Задач: {allCards.length}
-            {overdue > 0 && <span className="text-destructive"> · просрочено: {overdue}</span>}
+            {filtering && !showList ? t('tasks.filterNoDrag') : ''}
+            {t('tasks.total', { count: allCards.length })}
+            {overdue > 0 && <span className="text-destructive">{t('tasks.overdue', { count: overdue })}</span>}
           </p>
         </div>
       )}
@@ -161,13 +162,13 @@ export default function TasksPage() {
     return <Tasks columns={data.columns} />
   }
   if (isPending) {
-    return <p className="p-6 text-sm text-muted-foreground">Загружаем задачи…</p>
+    return <p className="p-6 text-sm text-muted-foreground">{t('tasks.loading')}</p>
   }
   return (
     <div className="flex flex-col items-start gap-3 p-6">
-      <p className="text-sm text-muted-foreground">Не удалось загрузить задачи.</p>
+      <p className="text-sm text-muted-foreground">{t('tasks.loadFailed')}</p>
       <Button variant="outline" size="sm" onClick={() => refetch()}>
-        Повторить
+        {t('common.retry')}
       </Button>
     </div>
   )

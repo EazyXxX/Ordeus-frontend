@@ -1,5 +1,6 @@
 import { AlignLeft, CalendarDays, CheckSquare } from 'lucide-react'
 
+import { t } from '@/i18n'
 import { cn } from '@/lib/utils'
 import type { Card } from './api'
 import { formatDue, isOverdue, PRIORITY_ICONS, PRIORITY_LABELS } from './appearance'
@@ -19,7 +20,7 @@ export function CardContent({ card }: { card: Card }) {
             <priority.icon
               className={cn('size-3.5', priority.className)}
               role="img"
-              aria-label={`Приоритет: ${PRIORITY_LABELS[card.priority]}`}
+              aria-label={t('tasks.priorityLabel', { name: PRIORITY_LABELS[card.priority] })}
             />
           )}
           {card.dueDate && (
@@ -34,7 +35,7 @@ export function CardContent({ card }: { card: Card }) {
               {done}/{total}
             </span>
           )}
-          {card.description && <AlignLeft className="size-3.5" role="img" aria-label="Есть описание" />}
+          {card.description && <AlignLeft className="size-3.5" role="img" aria-label={t('tasks.hasDescription')} />}
         </span>
       )}
     </>

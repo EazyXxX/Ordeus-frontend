@@ -1,6 +1,7 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
+import { language, t } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -13,20 +14,20 @@ const NEWEST_EMOJI_VERSION = 16
 
 // The numbers are emojibase's own groups, in the order they are shown.
 const GROUPS = [
-  { id: 0, icon: '😀', label: 'Смайлики и эмоции' },
-  { id: 1, icon: '👋', label: 'Люди и тело' },
-  { id: 3, icon: '🐻', label: 'Животные и природа' },
-  { id: 4, icon: '🍎', label: 'Еда и напитки' },
-  { id: 5, icon: '✈️', label: 'Путешествия и места' },
-  { id: 6, icon: '⚽', label: 'Занятия' },
-  { id: 7, icon: '💡', label: 'Предметы' },
-  { id: 8, icon: '❤️', label: 'Символы' },
-  { id: 9, icon: '🏁', label: 'Флаги' },
+  { id: 0, icon: '😀', label: t('emoji.smileys') },
+  { id: 1, icon: '👋', label: t('emoji.people') },
+  { id: 3, icon: '🐻', label: t('emoji.nature') },
+  { id: 4, icon: '🍎', label: t('emoji.food') },
+  { id: 5, icon: '✈️', label: t('emoji.travel') },
+  { id: 6, icon: '⚽', label: t('emoji.activities') },
+  { id: 7, icon: '💡', label: t('emoji.objects') },
+  { id: 8, icon: '❤️', label: t('emoji.symbols') },
+  { id: 9, icon: '🏁', label: t('emoji.flags') },
 ]
 
 // About 950 KB, so it loads only when the picker is opened.
 async function fetchEmojis() {
-  const { default: all } = await import('emojibase-data/ru/data.json')
+  const { default: all } = await (language === 'ru' ? import('emojibase-data/ru/data.json') : import('emojibase-data/en/data.json'))
   const shown = new Set(GROUPS.map((group) => group.id))
   return (all as EmojiEntry[]).filter(
     (entry) => entry.group !== undefined && shown.has(entry.group) && entry.version <= NEWEST_EMOJI_VERSION,
@@ -65,20 +66,20 @@ export function EmojiDialog({ name, emoji, onClose, onSave }: EmojiDialogProps) 
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="truncate">Эмодзи: {name}</DialogTitle>
-          <DialogDescription>Заменит цветной кружок рядом с названием.</DialogDescription>
+          <DialogTitle className="truncate">{t('emoji.title', { name })}</DialogTitle>
+          <DialogDescription>{t('emoji.hint')}</DialogDescription>
         </DialogHeader>
 
         <Input
           type="search"
-          aria-label="Поиск эмодзи"
-          placeholder="Поиск: кот, работа, спорт"
+          aria-label={t('emoji.search')}
+          placeholder={t('emoji.searchPlaceholder')}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
 
         {!query && (
-          <div role="group" aria-label="Группы эмодзи" className="grid grid-cols-9 gap-0.5">
+          <div role="group" aria-label={t('emoji.groups')} className="grid grid-cols-9 gap-0.5">
             {GROUPS.map(({ id, icon, label }) => (
               <button
                 key={id}
@@ -99,9 +100,9 @@ export function EmojiDialog({ name, emoji, onClose, onSave }: EmojiDialogProps) 
         )}
 
         <div className="h-[55svh] overflow-y-auto">
-          {emojis.isPending && <p className="text-sm text-muted-foreground">Загружаем эмодзи…</p>}
-          {emojis.isError && <p className="text-sm text-muted-foreground">Не удалось загрузить эмодзи.</p>}
-          {emojis.data && visible.length === 0 && <p className="text-sm text-muted-foreground">Ничего не найдено.</p>}
+          {emojis.isPending && <p className="text-sm text-muted-foreground">{t('emoji.loading')}</p>}
+          {emojis.isError && <p className="text-sm text-muted-foreground">{t('emoji.loadFailed')}</p>}
+          {emojis.data && visible.length === 0 && <p className="text-sm text-muted-foreground">{t('common.nothingFound')}</p>}
           <div className="grid grid-cols-[repeat(auto-fill,minmax(3rem,1fr))] gap-1">
             {visible.map(({ emoji: option, label }) => (
               <button
@@ -125,7 +126,7 @@ export function EmojiDialog({ name, emoji, onClose, onSave }: EmojiDialogProps) 
         {emoji && (
           <DialogFooter>
             <Button variant="ghost" onClick={() => choose('')}>
-              Убрать эмодзи
+              {t('emoji.remove')}
             </Button>
           </DialogFooter>
         )}

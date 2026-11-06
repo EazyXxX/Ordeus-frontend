@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { CalendarDays, MoreHorizontal, type LucideIcon } from 'lucide-react'
 
+import { t } from '@/i18n'
 import { ColorSubmenu } from '@/components/ColorSubmenu'
 import {
   AlertDialog,
@@ -80,13 +81,13 @@ function RenameDialog({ folder, onClose, onRename }: RenameDialogProps) {
       <DialogContent className="sm:max-w-sm">
         <form onSubmit={submit} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>Переименовать папку</DialogTitle>
-            <DialogDescription className="sr-only">Новое название папки</DialogDescription>
+            <DialogTitle>{t('folders.rename')}</DialogTitle>
+            <DialogDescription className="sr-only">{t('folders.newName')}</DialogDescription>
           </DialogHeader>
-          <Input aria-label="Название папки" maxLength={200} value={name} onChange={(event) => setName(event.target.value)} />
+          <Input aria-label={t('folders.name')} maxLength={200} value={name} onChange={(event) => setName(event.target.value)} />
           <DialogFooter>
             <Button type="submit" disabled={!name.trim()}>
-              Сохранить
+              {t('common.save')}
             </Button>
           </DialogFooter>
         </form>
@@ -140,8 +141,8 @@ export function DiaryFilters({
 
   function requestFolderDelete(folder: Folder) {
     setPendingDelete({
-      title: `Удалить папку «${folder.name}»?`,
-      description: `Записи останутся в дневнике, но без папки: ${folder.notes}. Отменить это нельзя.`,
+      title: t('folders.confirmDelete', { name: folder.name }),
+      description: t('folders.confirmDeleteText', { count: folder.notes }),
       confirm: () => {
         onDeleteFolder(folder.id)
         if (filter.folder === folder.id) onChange({ ...filter, folder: undefined })
@@ -151,8 +152,8 @@ export function DiaryFilters({
 
   function requestTagDelete(tag: Tag) {
     setPendingDelete({
-      title: `Удалить тег «${tag.name}»?`,
-      description: `Записи останутся, но тег исчезнет из них: ${tag.notes}. Отменить это нельзя.`,
+      title: t('folders.confirmTag', { name: tag.name }),
+      description: t('folders.confirmTagText', { count: tag.notes }),
       confirm: () => {
         onDeleteTag(tag.id)
         if (filter.tag === tag.name) onChange({ ...filter, tag: undefined })
@@ -163,14 +164,14 @@ export function DiaryFilters({
   return (
     <aside className="flex shrink-0 gap-1 overflow-x-auto border-b p-2 [scrollbar-width:none] md:w-56 md:flex-col md:overflow-x-visible md:overflow-y-auto md:border-r md:border-b-0">
       <FilterButton
-        label="Все записи"
+        label={t('folders.all')}
         active={!filter.folder && !filter.tag && !filter.daily}
         onClick={() => onChange({})}
       />
 
-      <h2 className="hidden px-2 pt-3 pb-1 text-xs font-medium text-muted-foreground md:block">Папки</h2>
+      <h2 className="hidden px-2 pt-3 pb-1 text-xs font-medium text-muted-foreground md:block">{t('diary.folders')}</h2>
       <FilterButton
-        label="Ежедневные заметки"
+        label={t('folders.daily')}
         icon={CalendarDays}
         active={Boolean(filter.daily)}
         onClick={() => onChange({ daily: 'true' })}
@@ -189,14 +190,14 @@ export function DiaryFilters({
               <Button
                 variant="ghost"
                 size="icon-xs"
-                aria-label={`Действия с папкой ${folder.name}`}
+                aria-label={t('folders.actions', { name: folder.name })}
                 className={menuButtonClass}
               >
                 <MoreHorizontal />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => setRenaming(folder)}>Переименовать</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setRenaming(folder)}>{t('common.rename')}</DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={() =>
                   setEmojiTarget({
@@ -206,11 +207,11 @@ export function DiaryFilters({
                   })
                 }
               >
-                Эмодзи
+                {t('common.emoji')}
               </DropdownMenuItem>
               <ColorSubmenu value={folder.color} onChange={(color) => onFolderColor(folder.id, color)} />
               <DropdownMenuItem variant="destructive" onSelect={() => requestFolderDelete(folder)}>
-                Удалить папку
+                {t('folders.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -218,7 +219,7 @@ export function DiaryFilters({
       ))}
 
       {tags.length > 0 && (
-        <h2 className="hidden px-2 pt-3 pb-1 text-xs font-medium text-muted-foreground md:block">Теги</h2>
+        <h2 className="hidden px-2 pt-3 pb-1 text-xs font-medium text-muted-foreground md:block">{t('diary.tags')}</h2>
       )}
       {tags.map((tag) => (
         <div key={tag.id} className="group flex shrink-0 items-center md:shrink">
@@ -231,7 +232,7 @@ export function DiaryFilters({
           />
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-xs" aria-label={`Действия с тегом ${tag.name}`} className={menuButtonClass}>
+              <Button variant="ghost" size="icon-xs" aria-label={t('folders.tagActions', { name: tag.name })} className={menuButtonClass}>
                 <MoreHorizontal />
               </Button>
             </DropdownMenuTrigger>
@@ -245,11 +246,11 @@ export function DiaryFilters({
                   })
                 }
               >
-                Эмодзи
+                {t('common.emoji')}
               </DropdownMenuItem>
               <ColorSubmenu value={tag.color} onChange={(color) => onTagColor(tag.id, color)} />
               <DropdownMenuItem variant="destructive" onSelect={() => requestTagDelete(tag)}>
-                Удалить тег
+                {t('folders.deleteTag')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -263,9 +264,9 @@ export function DiaryFilters({
             <AlertDialogDescription>{pendingDelete?.description}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={pendingDelete?.confirm}>
-              Удалить
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

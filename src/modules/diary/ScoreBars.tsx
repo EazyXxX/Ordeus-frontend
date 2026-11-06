@@ -1,10 +1,11 @@
+import { locale, t } from '@/i18n'
 import { parseLocalDate } from '@/lib/dates'
 import { cn } from '@/lib/utils'
 import type { Day } from './api'
 import { moodsOf } from './moods'
 
 const MAX_SCORE = 10
-const dayFormat = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' })
+const dayFormat = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' })
 
 type ScoreBarsProps = {
   dates: string[]
@@ -51,7 +52,7 @@ export function ScoreBars({ dates, days, onSelect }: ScoreBarsProps) {
           const day = days.get(date)
           return (
             <li key={date}>
-              {dayFormat.format(parseLocalDate(date))}: {day?.score ? `${day.score} из 10` : 'нет оценки'}
+              {dayFormat.format(parseLocalDate(date))}: {day?.score ? t('journal.scoreOf', { score: day.score }) : t('journal.noScore')}
               {moodsOf(day).map((mood) => `, ${mood.label}`).join('')}
             </li>
           )

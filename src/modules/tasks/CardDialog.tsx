@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Trash2 } from 'lucide-react'
 
+import { locale, t } from '@/i18n'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +23,7 @@ import type { Card, CardInput, Column } from './api'
 import { PRIORITIES, PRIORITY_LABELS, type Priority } from './appearance'
 import { Checklist, type ChecklistRow } from './Checklist'
 
-const dateTimeFormat = new Intl.DateTimeFormat('ru-RU', {
+const dateTimeFormat = new Intl.DateTimeFormat(locale, {
   day: 'numeric',
   month: 'long',
   hour: '2-digit',
@@ -92,22 +93,22 @@ export function CardDialog({ card, columns, onClose, onSave, onDelete }: CardDia
         onOpenAutoFocus={(event) => hasTouchScreen() && event.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className="sr-only">Карточка</DialogTitle>
-          <DialogDescription className="sr-only">Подробности задачи. Изменения сохраняются при закрытии.</DialogDescription>
+          <DialogTitle className="sr-only">{t('tasks.card')}</DialogTitle>
+          <DialogDescription className="sr-only">{t('tasks.cardHint')}</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_13rem]">
           <div className="flex min-w-0 flex-col gap-4">
             <Input
-              aria-label="Название"
+              aria-label={t('common.title')}
               className="h-10 text-base font-medium"
               maxLength={200}
               value={title}
               onChange={(event) => setTitle(event.target.value)}
             />
             <Textarea
-              aria-label="Описание"
-              placeholder="Описание"
+              aria-label={t('tasks.description')}
+              placeholder={t('tasks.description')}
               className="min-h-32"
               maxLength={10_000}
               value={description}
@@ -117,7 +118,7 @@ export function CardDialog({ card, columns, onClose, onSave, onDelete }: CardDia
           </div>
 
           <aside className="flex flex-col gap-3">
-            <Field label="Колонка">
+            <Field label={t('tasks.column')}>
               <select className={selectClass} value={columnId} onChange={(event) => setColumnId(event.target.value)}>
                 {columns.map((column) => (
                   <option key={column.id} value={column.id}>
@@ -126,7 +127,7 @@ export function CardDialog({ card, columns, onClose, onSave, onDelete }: CardDia
                 ))}
               </select>
             </Field>
-            <Field label="Приоритет">
+            <Field label={t('common.priority')}>
               <select
                 className={selectClass}
                 value={priority}
@@ -139,7 +140,7 @@ export function CardDialog({ card, columns, onClose, onSave, onDelete }: CardDia
                 ))}
               </select>
             </Field>
-            <Field label="Срок">
+            <Field label={t('common.due')}>
               <Input
                 type="date"
                 className="h-8"
@@ -151,22 +152,22 @@ export function CardDialog({ card, columns, onClose, onSave, onDelete }: CardDia
 
             <dl className="mt-1 flex flex-col gap-1 text-xs text-muted-foreground">
               <div>
-                <dt className="inline">Создана: </dt>
+                <dt className="inline">{t('tasks.created')}</dt>
                 <dd className="inline">{dateTimeFormat.format(new Date(card.createdAt))}</dd>
               </div>
               <div>
-                <dt className="inline">Изменена: </dt>
+                <dt className="inline">{t('tasks.updated')}</dt>
                 <dd className="inline">{dateTimeFormat.format(new Date(card.updatedAt))}</dd>
               </div>
             </dl>
 
             <div className="mt-auto flex flex-col gap-2 pt-2">
               <Button type="button" onClick={close}>
-                Готово
+                {t('common.done')}
               </Button>
               <Button type="button" variant="ghost" className="text-destructive" onClick={() => setConfirmingDelete(true)}>
                 <Trash2 />
-                Удалить
+                {t('common.delete')}
               </Button>
             </div>
           </aside>
@@ -175,13 +176,13 @@ export function CardDialog({ card, columns, onClose, onSave, onDelete }: CardDia
         <AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Удалить карточку?</AlertDialogTitle>
-              <AlertDialogDescription>Отменить это нельзя.</AlertDialogDescription>
+              <AlertDialogTitle>{t('tasks.deleteCard')}</AlertDialogTitle>
+              <AlertDialogDescription>{t('common.cannotUndo')}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Отмена</AlertDialogCancel>
+              <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
               <AlertDialogAction variant="destructive" onClick={onDelete}>
-                Удалить
+                {t('common.delete')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

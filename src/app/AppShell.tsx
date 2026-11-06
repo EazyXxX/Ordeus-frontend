@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from 'react-router'
 
+import { t } from '@/i18n'
 import { AppSidebar } from '@/app/AppSidebar'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { modules } from '@/modules/registry'
@@ -7,7 +8,7 @@ import { modules } from '@/modules/registry'
 export function AppShell() {
   const { pathname } = useLocation()
   const current = modules.find((module) => pathname.startsWith(module.path))
-  const title = { '/': 'Главная', '/account': 'Личный кабинет' }[pathname] ?? current?.title
+  const title = { '/': t('nav.home'), '/account': t('common.account') }[pathname] ?? current?.title
 
   return (
     <SidebarProvider>

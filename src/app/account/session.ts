@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { language, type Language } from '@/i18n'
 import { ApiError, request } from '@/lib/api'
 import type { Color } from '@/lib/colors'
 
@@ -8,6 +9,7 @@ export type Account = {
   email: string
   name: string
   color: Color
+  language: Language
 }
 
 export type Session = {
@@ -54,11 +56,12 @@ export function useCurrentUser() {
 
 export const signIn = (input: { email: string; password: string }) => post<Session>('/api/auth/login', input)
 export const signUp = (input: { email: string; name: string; password: string }) =>
-  post<Session>('/api/auth/register', input)
+  post<Session>('/api/auth/register', { ...input, language })
 export const switchAccount = (userId: string) => post<Session>('/api/auth/switch', { userId })
 export const signOut = () => post<Session | undefined>('/api/auth/logout')
 
 export const updateProfile = (input: { name: string; color: Color }) => post('/api/account', input, 'PATCH')
+export const updateLanguage = (next: Language) => post('/api/account/language', { language: next }, 'PATCH')
 export const changePassword = (input: { current: string; next: string }) => post('/api/account/password', input)
 export const fetchStats = () => request<AccountStats>('/api/account/stats')
 

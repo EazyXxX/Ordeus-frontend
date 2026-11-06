@@ -1,15 +1,16 @@
 import { ArrowRight, BookOpen, CalendarDays, KanbanSquare, Sparkles, UserRound, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { t } from '@/i18n'
 import { useCurrentUser } from '@/app/account/session'
 import { OrderRing } from '@/app/OrderRing'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 const STEPS = [
-  { title: 'Выгрузите всё из головы', text: 'Пишите или надиктовывайте как думается, без папок и форматирования.' },
-  { title: 'Нейросеть разложит по полочкам', text: 'Заголовки, папки, теги, связи и задачи с датами появятся сами.' },
-  { title: 'Смотрите на жизнь как на историю', text: 'Оценки дней, итоги недель и советы складываются в книгу о вас.' },
+  { title: t('home.step1Title'), text: t('home.step1Text') },
+  { title: t('home.step2Title'), text: t('home.step2Text') },
+  { title: t('home.step3Title'), text: t('home.step3Text') },
 ]
 
 type Feature = {
@@ -22,40 +23,40 @@ type Feature = {
 
 const FEATURES: Feature[] = [
   {
-    title: 'Дневник',
-    text: 'Записи сами находят своё место, а дни складываются в историю с итогами и настроением.',
+    title: t('nav.diary'),
+    text: t('home.diaryText'),
     icon: BookOpen,
     wide: true,
     links: [
-      { to: '/diary/journal', label: 'Ежедневник', hint: 'Эмоции, оценка дня, итоги и советы нейросети' },
-      { to: '/diary/book', label: 'Книга', hint: 'Все дни единым рассказом на весь экран' },
-      { to: '/diary/zen', label: 'Дзен', hint: 'Текст или голос, остальное сделает нейросеть' },
-      { to: '/diary', label: 'Записи', hint: 'Папки, теги, эмодзи и поиск' },
-      { to: '/diary/graph', label: 'Граф', hint: 'Карта связей между записями' },
+      { to: '/diary/journal', label: t('journal.title'), hint: t('home.journalHint') },
+      { to: '/diary/book', label: t('book.title'), hint: t('home.bookHint') },
+      { to: '/diary/zen', label: t('tasks.zen'), hint: t('home.zenHint') },
+      { to: '/diary', label: t('diary.notes'), hint: t('home.notesHint') },
+      { to: '/diary/graph', label: t('diary.graph'), hint: t('home.graphHint') },
     ],
   },
   {
-    title: 'Задачи',
-    text: 'Доска с приоритетами, сроками, чек-листами и бэклогом.',
+    title: t('nav.tasks'),
+    text: t('home.tasksText'),
     icon: KanbanSquare,
     links: [
-      { to: '/tasks/zen', label: 'Дзен', hint: 'Опишите дела, тикеты появятся сами' },
-      { to: '/tasks', label: 'Канбан', hint: 'Перетаскивайте карточки по колонкам' },
-      { to: '/tasks/list', label: 'Список', hint: 'Все задачи одной таблицей' },
+      { to: '/tasks/zen', label: t('tasks.zen'), hint: t('home.tasksZenHint') },
+      { to: '/tasks', label: t('tasks.kanban'), hint: t('home.kanbanHint') },
+      { to: '/tasks/list', label: t('tasks.list'), hint: t('home.listHint') },
     ],
   },
   {
-    title: 'Календарь',
-    text: 'Месяц и неделя на одном экране: задачи со сроками и заметки на конкретные даты.',
+    title: t('nav.calendar'),
+    text: t('home.calendarText'),
     icon: CalendarDays,
-    links: [{ to: '/calendar', label: 'Открыть календарь', hint: 'Планируйте по дням и неделям' }],
+    links: [{ to: '/calendar', label: t('home.openCalendar'), hint: t('home.calendarHint') }],
   },
   {
-    title: 'Личный кабинет',
-    text: 'Несколько аккаунтов и выбор нейросети: локальная на вашем компьютере или удалённая по API.',
+    title: t('common.account'),
+    text: t('home.accountText'),
     icon: UserRound,
     wide: true,
-    links: [{ to: '/account', label: 'Открыть кабинет', hint: 'Профиль, аккаунты и настройки нейросети' }],
+    links: [{ to: '/account', label: t('home.openAccount'), hint: t('home.accountHint') }],
   },
 ]
 
@@ -117,24 +118,23 @@ export default function HomePage() {
           </div>
           <div className="flex flex-col items-start gap-4">
             <p style={delayed(0.1)} className={cn('text-sm text-muted-foreground', RISE)}>
-              Привет, {user.name.trim().split(/\s+/)[0]}
+              {t('home.greeting', { name: user.name.trim().split(/\s+/)[0] })}
             </p>
             <h2 style={delayed(0.2)} className={cn('text-3xl font-semibold tracking-tight text-balance md:text-5xl', RISE)}>
-              Порядок в голове и в делах
+              {t('home.headline')}
             </h2>
             <p style={delayed(0.35)} className={cn('max-w-2xl text-base text-pretty text-muted-foreground md:text-lg', RISE)}>
-              Ordeus, от латинского ordo, «порядок». Дневник, задачи и календарь в одном месте: вы записываете, что пришло
-              в голову, а нейросеть раскладывает всё по полочкам и подводит итоги дней и недель.
+              {t('home.intro')}
             </p>
             <div style={delayed(0.5)} className={cn('flex flex-wrap gap-2 pt-1', RISE)}>
               <Button asChild size="lg">
                 <Link to="/diary/zen">
                   <Sparkles />
-                  Написать в дневник
+                  {t('home.writeDiary')}
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link to="/tasks/zen">Накидать задачи</Link>
+                <Link to="/tasks/zen">{t('home.addTasks')}</Link>
               </Button>
             </div>
           </div>

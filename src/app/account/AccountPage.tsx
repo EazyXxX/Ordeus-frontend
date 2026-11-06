@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router'
 
+import { applyLanguage, language, t, type Language } from '@/i18n'
 import { ColorPicker } from '@/components/ColorPicker'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +18,7 @@ import {
   SESSION_KEY,
   signOut,
   switchAccount,
+  updateLanguage,
   updateProfile,
   useCurrentUser,
   useSession,
@@ -41,7 +43,7 @@ function Profile() {
   }
 
   return (
-    <Section title="Профиль">
+    <Section title={t('account.profile')}>
       <form onSubmit={submit} className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <AccountAvatar name={name || user.name} color={color} className="size-12 text-base" />
@@ -52,8 +54,8 @@ function Profile() {
         </div>
         <Input
           required
-          aria-label="Имя"
-          placeholder="Имя"
+          aria-label={t('common.name')}
+          placeholder={t('common.name')}
           maxLength={100}
           value={name}
           onChange={(event) => {
@@ -70,13 +72,46 @@ function Profile() {
         />
         <div className="flex items-center gap-3">
           <Button type="submit" disabled={isPending || !name.trim()}>
-            Сохранить
+            {t('common.save')}
           </Button>
           <p role="status" className={isError ? 'text-sm text-destructive' : 'text-sm text-muted-foreground'}>
-            {isError ? 'Не удалось сохранить.' : isSuccess ? 'Сохранено' : ''}
+            {isError ? t('account.saveFailed') : isSuccess ? t('common.saved') : ''}
           </p>
         </div>
       </form>
+    </Section>
+  )
+}
+
+const LANGUAGES: { value: Language; label: string }[] = [
+  { value: 'ru', label: t('language.ru') },
+  { value: 'en', label: t('language.en') },
+]
+
+function LanguageSection() {
+  const choose = useMutation({
+    mutationFn: updateLanguage,
+    onSuccess: (_, next) => applyLanguage(next),
+  })
+
+  return (
+    <Section title={t('account.language')}>
+      <div role="group" aria-label={t('account.language')} className="flex gap-2">
+        {LANGUAGES.map(({ value, label }) => (
+          <Button
+            key={value}
+            variant={value === language ? 'secondary' : 'outline'}
+            aria-pressed={value === language}
+            disabled={choose.isPending}
+            onClick={() => choose.mutate(value)}
+          >
+            {label}
+          </Button>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {choose.isError ? t('account.languageFailed') : t('account.languageHint')}
+      </p>
     </Section>
   )
 }
@@ -85,15 +120,15 @@ function Stats() {
   const { data: stats, isError } = useQuery({ queryKey: ['account', 'stats'], queryFn: fetchStats })
 
   const items = stats && [
-    { label: 'Записей', value: stats.notes },
-    { label: 'Папок', value: stats.folders },
-    { label: 'Задач', value: stats.tasks },
-    { label: 'Заметок в календаре', value: stats.calendarNotes },
+    { label: t('account.statNotes'), value: stats.notes },
+    { label: t('account.statFolders'), value: stats.folders },
+    { label: t('account.statTasks'), value: stats.tasks },
+    { label: t('account.statCalendar'), value: stats.calendarNotes },
   ]
 
   return (
-    <Section title="Статистика">
-      {isError && <p className="text-sm text-muted-foreground">Не удалось загрузить статистику.</p>}
+    <Section title={t('account.stats')}>
+      {isError && <p className="text-sm text-muted-foreground">{t('account.statsFailed')}</p>}
       {items && (
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {items.map(({ label, value }) => (
@@ -109,9 +144,9 @@ function Stats() {
 }
 
 function describePasswordError(error: unknown) {
-  if (error instanceof ApiError && error.status === 403) return 'Текущий пароль указан неверно.'
-  if (error instanceof ApiError && error.status === 400) return 'Новый пароль не подходит: от 8 символов.'
-  return 'Не удалось сменить пароль.'
+  if (error instanceof ApiError && error.status === 403) return t('account.wrongPassword')
+  if (error instanceof ApiError && error.status === 400) return t('account.badPassword')
+  return t('account.passwordFailed')
 }
 
 function Password() {
@@ -143,13 +178,13 @@ function Password() {
   }
 
   return (
-    <Section title="Пароль">
+    <Section title={t('common.password')}>
       <form onSubmit={submit} className="flex flex-col gap-3">
         <Input
           required
           type="password"
-          aria-label="Текущий пароль"
-          placeholder="Текущий пароль"
+          aria-label={t('account.currentPassword')}
+          placeholder={t('account.currentPassword')}
           autoComplete="current-password"
           value={current}
           onChange={field(setCurrent)}
@@ -157,8 +192,8 @@ function Password() {
         <Input
           required
           type="password"
-          aria-label="Новый пароль"
-          placeholder={`Новый пароль, не короче ${MIN_PASSWORD_LENGTH} символов`}
+          aria-label={t('account.newPassword')}
+          placeholder={t('account.newPasswordRule', { count: MIN_PASSWORD_LENGTH })}
           autoComplete="new-password"
           minLength={MIN_PASSWORD_LENGTH}
           value={next}
@@ -167,26 +202,26 @@ function Password() {
         <Input
           required
           type="password"
-          aria-label="Повторите новый пароль"
-          placeholder="Повторите новый пароль"
+          aria-label={t('account.repeatPassword')}
+          placeholder={t('account.repeatPassword')}
           autoComplete="new-password"
           value={repeat}
           onChange={field(setRepeat)}
         />
         <div className="flex items-center gap-3">
           <Button type="submit" disabled={isPending || mismatch}>
-            Сменить пароль
+            {t('account.changePassword')}
           </Button>
           <p
             role="status"
             className={error || mismatch ? 'text-sm text-destructive' : 'text-sm text-muted-foreground'}
           >
             {mismatch
-              ? 'Пароли не совпадают.'
+              ? t('account.mismatch')
               : error
                 ? describePasswordError(error)
                 : isSuccess
-                  ? 'Пароль изменён. Другие устройства вышли из аккаунта.'
+                  ? t('account.passwordChanged')
                   : ''}
           </p>
         </div>
@@ -210,7 +245,7 @@ function DeviceAccounts() {
   }
 
   return (
-    <Section title="Аккаунты на этом устройстве">
+    <Section title={t('account.devices')}>
       <ul className="flex flex-col gap-2">
         {session.accounts.map((account) => (
           <li key={account.id} className="flex items-center gap-3">
@@ -220,10 +255,10 @@ function DeviceAccounts() {
               <p className="truncate text-xs text-muted-foreground">{account.email}</p>
             </div>
             {account.id === session.user.id ? (
-              <span className="text-xs text-muted-foreground">Активен</span>
+              <span className="text-xs text-muted-foreground">{t('account.active')}</span>
             ) : (
               <Button variant="outline" size="sm" onClick={() => open(account.id)}>
-                Переключиться
+                {t('account.switch')}
               </Button>
             )}
           </li>
@@ -231,10 +266,10 @@ function DeviceAccounts() {
       </ul>
       <div className="flex flex-wrap gap-2">
         <Button asChild variant="outline" size="sm">
-          <Link to="/login?add=1">Добавить аккаунт</Link>
+          <Link to="/login?add=1">{t('common.addAccount')}</Link>
         </Button>
         <Button variant="ghost" size="sm" className="text-destructive" onClick={leave}>
-          Выйти из {session.user.name}
+          {t('account.signOutOf', { name: session.user.name })}
         </Button>
       </div>
     </Section>
@@ -246,6 +281,7 @@ export default function AccountPage() {
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-4">
         <Profile />
+        <LanguageSection />
         <Stats />
         <AiSection />
         <Password />

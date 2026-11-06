@@ -5,6 +5,7 @@ import ForceGraph2D, { type ForceGraphMethods, type LinkObject, type NodeObject 
 import { Maximize } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { t } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { COLOR_HEX } from '@/lib/colors'
@@ -53,8 +54,8 @@ const LABEL_LENGTH = 32
 const shortLabel = (title: string) => (title.length > LABEL_LENGTH ? `${title.slice(0, LABEL_LENGTH).trimEnd()}…` : title)
 
 const GROUPINGS: { value: GraphGrouping; label: string }[] = [
-  { value: 'folder', label: 'Папки' },
-  { value: 'tag', label: 'Теги' },
+  { value: 'folder', label: t('diary.folders') },
+  { value: 'tag', label: t('diary.tags') },
 ]
 
 const PALETTE = {
@@ -274,14 +275,14 @@ export function DiaryGraph() {
   }
 
   if (notes.isPending) {
-    return <p className="p-6 text-sm text-muted-foreground">Строим граф…</p>
+    return <p className="p-6 text-sm text-muted-foreground">{t('graph.building')}</p>
   }
   if (notes.isError) {
     return (
       <div className="flex flex-col items-start gap-3 p-6">
-        <p className="text-sm text-muted-foreground">Не удалось загрузить заметки.</p>
+        <p className="text-sm text-muted-foreground">{t('graph.loadFailed')}</p>
         <Button variant="outline" size="sm" onClick={() => notes.refetch()}>
-          Повторить
+          {t('common.retry')}
         </Button>
       </div>
     )
@@ -289,9 +290,9 @@ export function DiaryGraph() {
   if (allNotes.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
-        <p className="max-w-sm text-sm text-muted-foreground">Заметок пока нет, поэтому показывать нечего.</p>
+        <p className="max-w-sm text-sm text-muted-foreground">{t('graph.empty')}</p>
         <Button asChild variant="outline">
-          <Link to="/diary/zen">Открыть дзен-режим</Link>
+          <Link to="/diary/zen">{t('common.openZen')}</Link>
         </Button>
       </div>
     )
@@ -301,7 +302,7 @@ export function DiaryGraph() {
     <div className="flex min-h-0 flex-1 flex-col">
       {saveFailed && (
         <p role="alert" className="border-b px-4 py-2 text-sm text-destructive">
-          Не удалось сохранить изменения.
+          {t('common.saveFailed')}
         </p>
       )}
 
@@ -309,7 +310,7 @@ export function DiaryGraph() {
         <div
           ref={container}
           role="img"
-          aria-label="Граф заметок и связей между ними"
+          aria-label={t('graph.label')}
           className="absolute inset-0"
           onMouseLeave={() => setHoveredId(null)}
         >
@@ -346,8 +347,8 @@ export function DiaryGraph() {
           <div className={cn(PANEL, 'w-full sm:w-60')}>
             <Input
               type="search"
-              aria-label="Найти заметку на графе"
-              placeholder="Найти на графе"
+              aria-label={t('graph.findNote')}
+              placeholder={t('graph.find')}
               className="border-0 bg-transparent dark:bg-transparent"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -363,17 +364,17 @@ export function DiaryGraph() {
               linkedOnly ? 'font-medium' : 'text-muted-foreground hover:text-foreground',
             )}
           >
-            Только со связями
+            {t('graph.linkedOnly')}
           </button>
           <div className={cn(PANEL, 'ml-auto flex items-center gap-2 py-0.5 pr-0.5 pl-3 text-xs text-muted-foreground')}>
             <span className="tabular-nums">
               {data.nodes.length} · {data.links.length}
             </span>
-            <span className="sr-only">Заметок и связей на графе</span>
+            <span className="sr-only">{t('graph.counts')}</span>
             <Button
               variant="ghost"
               size="icon-xs"
-              aria-label="Показать весь граф"
+              aria-label={t('graph.fit')}
               onClick={() => graph.current?.zoomToFit(FIT_DURATION_MS, FIT_PADDING)}
             >
               <Maximize />
@@ -383,7 +384,7 @@ export function DiaryGraph() {
 
         <div className="pointer-events-none absolute inset-x-3 bottom-3 flex justify-center">
           <div className={cn(PANEL, 'flex max-w-full items-center gap-1 overflow-x-auto p-1 [scrollbar-width:none]')}>
-            <div role="group" aria-label="Чем раскрашивать граф" className="mr-1 flex shrink-0 gap-1 border-r pr-2">
+            <div role="group" aria-label={t('graph.colorBy')} className="mr-1 flex shrink-0 gap-1 border-r pr-2">
               {GROUPINGS.map(({ value, label }) => (
                 <button
                   key={value}

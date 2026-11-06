@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 
+import { t } from '@/i18n'
 import { ZenComposer } from '@/components/zen/ZenComposer'
 import { CAPTURES_KEY, createCapture } from './api'
 
 const PLACEHOLDERS = [
-  'Подготовить отчёт к пятнице и записаться к врачу',
-  'Завтра позвонить в банк, а к среде закончить презентацию',
-  'Срочно оплатить интернет и до выходных купить подарок маме',
-  'Разобрать балкон, продлить страховку и ответить Ивану',
-  'К понедельнику собрать документы, потом записаться в МФЦ',
-  'Через неделю сдать проект, а завтра созвониться с командой',
-  'Купить билеты до конца месяца и забронировать отель',
-  'Починить кран на кухне и заехать в сервис на этой неделе',
+  t('tasks.example1'),
+  t('tasks.example2'),
+  t('tasks.example3'),
+  t('tasks.example4'),
+  t('tasks.example5'),
+  t('tasks.example6'),
+  t('tasks.example7'),
+  t('tasks.example8'),
 ]
 
 const LAST_PLACEHOLDER_KEY = 'ordeus.tasks.zen-placeholder'
@@ -50,12 +51,12 @@ export function TasksZen({ active }: { active: number }) {
   return (
     <ZenComposer
       section="tasks"
-      heading={(name) => `Что нужно сделать, ${name}?`}
+      heading={(name) => t('tasks.zenHeading', { name })}
       placeholder={placeholder}
-      idleStatus="Нейросеть сама создаст задачи и опишет их"
-      activeStatus={(count) => `Создаю задачи: ${count}`}
-      acceptedTitle="Принято в работу"
-      acceptedDescription="Нейросеть создаст задачи и опишет их."
+      idleStatus={t('tasks.zenIdle')}
+      activeStatus={(count) => t('tasks.creatingCount', { count })}
+      acceptedTitle={t('tasks.accepted')}
+      acceptedDescription={t('tasks.acceptedText')}
       active={active}
       onSubmit={createCapture}
       onSent={() => queryClient.invalidateQueries({ queryKey: CAPTURES_KEY })}

@@ -1,6 +1,7 @@
 import { LogOut, Plus, UserRound } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { t } from '@/i18n'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,7 +39,7 @@ export function AccountMenu() {
       <SidebarMenuItem>
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton tooltip={user.name} aria-label={`Аккаунт: ${user.name}`}>
+            <SidebarMenuButton tooltip={user.name} aria-label={t('account.menuLabel', { name: user.name })}>
               <AccountAvatar name={user.name} color={user.color} />
               <span className="truncate">{user.name}</span>
             </SidebarMenuButton>
@@ -57,19 +58,19 @@ export function AccountMenu() {
             <DropdownMenuItem asChild>
               <Link to="/login?add=1">
                 <Plus />
-                Добавить аккаунт
+                {t('common.addAccount')}
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link to="/account" onClick={() => setOpenMobile(false)}>
                 <UserRound />
-                Личный кабинет
+                {t('common.account')}
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onSelect={leave}>
               <LogOut />
-              Выйти
+              {t('account.signOut')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

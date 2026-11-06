@@ -1,10 +1,11 @@
+import { t } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { localDate } from '@/lib/dates'
 
 const PRESETS = [
-  { label: '7 дней', days: 7 },
-  { label: '30 дней', days: 30 },
+  { label: t('journal.days7'), days: 7 },
+  { label: t('journal.days30'), days: 30 },
 ]
 
 function lastDays(days: number) {
@@ -21,9 +22,9 @@ type DailyRangeProps = {
 
 export function DailyRange({ from, to, onChange }: DailyRangeProps) {
   return (
-    <div role="group" aria-label="Период" className="flex flex-wrap items-center gap-2">
+    <div role="group" aria-label={t('journal.period')} className="flex flex-wrap items-center gap-2">
       <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        с
+        {t('journal.from')}
         <Input
           type="date"
           className="w-auto"
@@ -33,7 +34,7 @@ export function DailyRange({ from, to, onChange }: DailyRangeProps) {
         />
       </label>
       <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        по
+        {t('journal.to')}
         <Input
           type="date"
           className="w-auto"
@@ -58,7 +59,7 @@ export function DailyRange({ from, to, onChange }: DailyRangeProps) {
       })}
       {(from || to) && (
         <Button variant="ghost" size="sm" onClick={() => onChange({ from: undefined, to: undefined })}>
-          Сбросить
+          {t('journal.reset')}
         </Button>
       )}
     </div>

@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 
+import { t } from '@/i18n'
 import { useCaptures } from '@/components/zen/useCaptures'
 import { ZenComposer } from '@/components/zen/ZenComposer'
 import { CAPTURES_KEY, createCapture, fetchCaptures, LIBRARY_KEY } from './api'
@@ -10,19 +11,19 @@ export function ZenMode() {
     queryKey: CAPTURES_KEY,
     fetchCaptures,
     resultKey: LIBRARY_KEY,
-    doneMessage: 'Запись в дневнике',
-    failedMessage: 'Не удалось разобрать запись. Текст сохранён в разделе «Записи».',
+    doneMessage: t('diary.noteSaved'),
+    failedMessage: t('diary.organizeFailed'),
   })
 
   return (
     <ZenComposer
       section="diary"
-      heading={(name) => `О чём думаешь, ${name}?`}
-      placeholder="Запиши всё, что в голове"
-      idleStatus="Нейросеть сама разложит по папкам и тегам"
-      activeStatus={(count) => `Раскладываю по полочкам: ${count}`}
-      acceptedTitle="Запись принята"
-      acceptedDescription="Нейросеть разложит её по папкам и тегам."
+      heading={(name) => t('diary.zenHeading', { name })}
+      placeholder={t('diary.zenPlaceholder')}
+      idleStatus={t('diary.zenIdle')}
+      activeStatus={(count) => t('diary.organizingCount', { count })}
+      acceptedTitle={t('diary.accepted')}
+      acceptedDescription={t('diary.acceptedText')}
       active={active}
       onSubmit={createCapture}
       onSent={() => queryClient.invalidateQueries({ queryKey: CAPTURES_KEY })}

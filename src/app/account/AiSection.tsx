@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { t } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ApiError } from '@/lib/api'
@@ -29,17 +30,17 @@ const selectClass = 'h-8 w-full rounded-lg border border-input bg-transparent px
 const fieldClass = 'flex flex-col gap-1 text-xs font-medium text-muted-foreground'
 
 const SAVE_ERRORS: Record<string, string> = {
-  'api address must be a public https url': 'Адрес API должен быть публичным и начинаться с https.',
-  'model name must be 1 to 200 characters long': 'Укажите название модели.',
-  'api key is too long': 'Ключ API слишком длинный.',
-  'remote model is not configured': 'Укажите адрес API и модель.',
-  'local models are unavailable': 'Ollama не отвечает. Проверьте, что она запущена.',
-  'unknown model': 'Такой локальной модели нет.',
+  'api address must be a public https url': t('ai.badUrl'),
+  'model name must be 1 to 200 characters long': t('ai.badModel'),
+  'api key is too long': t('ai.longKey'),
+  'remote model is not configured': t('ai.notConfigured'),
+  'local models are unavailable': t('ai.ollamaDown'),
+  'unknown model': t('ai.unknownModel'),
 }
 
 function describeSaveError(error: unknown) {
   const reason = error instanceof ApiError ? SAVE_ERRORS[error.reason] : undefined
-  return reason ?? 'Не удалось сохранить настройки.'
+  return reason ?? t('ai.saveFailed')
 }
 
 function AiForm({ settings }: { settings: AiSettings }) {
@@ -101,7 +102,7 @@ function AiForm({ settings }: { settings: AiSettings }) {
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
       <label className={fieldClass}>
-        Какую модель использовать для разбора записей
+        {t('ai.whichModel')}
         <select
           className={selectClass}
           value={provider}
@@ -110,14 +111,14 @@ function AiForm({ settings }: { settings: AiSettings }) {
             resetResults()
           }}
         >
-          <option value="local">Локальную, на этом компьютере</option>
-          <option value="remote">Удалённую, через API вендора</option>
+          <option value="local">{t('ai.local')}</option>
+          <option value="remote">{t('ai.remote')}</option>
         </select>
       </label>
 
       {provider === 'local' && (
         <label className={fieldClass}>
-          Локальная модель
+          {t('ai.localModel')}
           <select
             className={selectClass}
             disabled={!settings.local.available}
@@ -134,7 +135,7 @@ function AiForm({ settings }: { settings: AiSettings }) {
             ))}
           </select>
           {!settings.local.available && (
-            <span className="font-normal text-destructive">Ollama не отвечает. Проверьте, что она запущена.</span>
+            <span className="font-normal text-destructive">{t('ai.ollamaDown')}</span>
           )}
         </label>
       )}
@@ -142,7 +143,7 @@ function AiForm({ settings }: { settings: AiSettings }) {
       {provider === 'remote' && (
         <>
           <label className={fieldClass}>
-            Вендор
+            {t('ai.vendor')}
             <select
               className={selectClass}
               value={vendor}
@@ -151,7 +152,7 @@ function AiForm({ settings }: { settings: AiSettings }) {
                 resetResults()
               }}
             >
-              <option value={CUSTOM_VENDOR}>Другой</option>
+              <option value={CUSTOM_VENDOR}>{t('ai.otherVendor')}</option>
               {VENDORS.map(({ name, url }) => (
                 <option key={url} value={url}>
                   {name}
@@ -160,7 +161,7 @@ function AiForm({ settings }: { settings: AiSettings }) {
             </select>
           </label>
           <label className={fieldClass}>
-            Адрес API
+            {t('ai.address')}
             <Input
               required
               type="url"
@@ -173,11 +174,11 @@ function AiForm({ settings }: { settings: AiSettings }) {
             />
           </label>
           <label className={fieldClass}>
-            Ключ API
+            {t('ai.key')}
             <Input
               type="password"
               autoComplete="off"
-              placeholder={keySaved ? `Сохранён, заканчивается на ${settings.remote.keyHint}` : 'Ключ из кабинета вендора'}
+              placeholder={keySaved ? t('ai.keySaved', { hint: settings.remote.keyHint }) : t('ai.keyPlaceholder')}
               value={apiKey}
               onChange={(event) => {
                 setApiKey(event.target.value)
@@ -185,7 +186,7 @@ function AiForm({ settings }: { settings: AiSettings }) {
               }}
             />
             {settings.remote.hasApiKey && addressChanged && (
-              <span className="font-normal">Для нового адреса ключ нужно ввести заново.</span>
+              <span className="font-normal">{t('ai.keyAgain')}</span>
             )}
           </label>
           <div className="flex flex-wrap items-center gap-3">
@@ -196,24 +197,24 @@ function AiForm({ settings }: { settings: AiSettings }) {
               disabled={!baseUrl.trim() || check.isPending}
               onClick={() => check.mutate()}
             >
-              Проверить подключение
+              {t('ai.check')}
             </Button>
             <p role="status" className={check.isError ? 'text-sm text-destructive' : 'text-sm text-muted-foreground'}>
               {check.isPending
-                ? 'Проверяем…'
+                ? t('ai.checking')
                 : check.isError
-                  ? 'Не удалось подключиться. Проверьте адрес и ключ.'
+                  ? t('ai.checkFailed')
                   : check.data
-                    ? `Подключено, моделей: ${check.data.models.length}`
+                    ? t('ai.connected', { count: check.data.models.length })
                     : ''}
             </p>
           </div>
           <label className={fieldClass}>
-            Модель
+            {t('ai.model')}
             <Input
               required
               list="remote-models"
-              placeholder="Название модели у вендора"
+              placeholder={t('ai.modelPlaceholder')}
               maxLength={200}
               value={model}
               onChange={(event) => {
@@ -228,15 +229,14 @@ function AiForm({ settings }: { settings: AiSettings }) {
             </datalist>
           </label>
           <p className="text-xs text-muted-foreground">
-            Текст записей будет уходить вендору. Ключ хранится на сервере Ordeus в зашифрованном виде. Голос всегда
-            распознаётся локально.
+            {t('ai.privacy')}
           </p>
         </>
       )}
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={save.isPending || remoteIncomplete}>
-          Сохранить
+          {t('common.save')}
         </Button>
         {settings.remote.baseUrl && provider === 'remote' && (
           <Button
@@ -246,14 +246,14 @@ function AiForm({ settings }: { settings: AiSettings }) {
             disabled={disconnect.isPending}
             onClick={() => disconnect.mutate()}
           >
-            Отключить API и удалить ключ
+            {t('ai.disconnect')}
           </Button>
         )}
         <p role="status" className={save.isError ? 'text-sm text-destructive' : 'text-sm text-muted-foreground'}>
           {save.isError
             ? describeSaveError(save.error)
             : save.isSuccess
-              ? 'Сохранено'
+              ? t('common.saved')
               : ''}
         </p>
       </div>
@@ -265,8 +265,8 @@ export function AiSection() {
   const { data: settings, isError } = useQuery({ queryKey: AI_KEY, queryFn: fetchAiSettings, retry: false })
 
   return (
-    <Section title="Нейросеть">
-      {isError && <p className="text-sm text-muted-foreground">Не удалось загрузить настройки.</p>}
+    <Section title={t('ai.title')}>
+      {isError && <p className="text-sm text-muted-foreground">{t('ai.loadFailed')}</p>}
       {settings && <AiForm settings={settings} />}
     </Section>
   )

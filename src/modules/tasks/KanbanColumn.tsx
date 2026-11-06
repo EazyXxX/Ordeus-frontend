@@ -3,6 +3,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-
 import { CSS } from '@dnd-kit/utilities'
 import { MoreHorizontal } from 'lucide-react'
 
+import { t } from '@/i18n'
 import { ColorSubmenu } from '@/components/ColorSubmenu'
 import {
   AlertDialog,
@@ -84,7 +85,7 @@ export function KanbanColumn({
         {renaming ? (
           <Input
             autoFocus
-            aria-label="Название колонки"
+            aria-label={t('tasks.columnName')}
             className="h-7"
             maxLength={200}
             defaultValue={column.title}
@@ -109,15 +110,15 @@ export function KanbanColumn({
             <span className="text-xs text-muted-foreground">{column.cards.length}</span>
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon-sm" className="ml-auto" aria-label={`Действия с колонкой ${column.title}`}>
+                <Button variant="ghost" size="icon-sm" className="ml-auto" aria-label={t('tasks.columnActions', { name: column.title })}>
                   <MoreHorizontal />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" onCloseAutoFocus={(event) => event.preventDefault()}>
-                <DropdownMenuItem onSelect={() => setRenaming(true)}>Переименовать</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setRenaming(true)}>{t('common.rename')}</DropdownMenuItem>
                 <ColorSubmenu value={column.color} onChange={onColorChange} />
                 <DropdownMenuItem variant="destructive" onSelect={requestDelete}>
-                  Удалить
+                  {t('common.delete')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -133,20 +134,20 @@ export function KanbanColumn({
         </div>
       </SortableContext>
 
-      <InlineAdd label="Добавить карточку" placeholder="Название карточки" onSubmit={onAddCard} />
+      <InlineAdd label={t('tasks.addCard')} placeholder={t('tasks.cardName')} onSubmit={onAddCard} />
 
       <AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить колонку «{column.title}»?</AlertDialogTitle>
+            <AlertDialogTitle>{t('tasks.deleteColumn', { name: column.title })}</AlertDialogTitle>
             <AlertDialogDescription>
-              Вместе с ней удалятся все карточки ({totalCards}). Отменить это нельзя.
+              {t('tasks.deleteColumnText', { count: totalCards })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={onDelete}>
-              Удалить
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

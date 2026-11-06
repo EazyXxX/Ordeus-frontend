@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { CheckSquare, Plus } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { t } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { COLOR_DOT } from '@/lib/colors'
@@ -30,14 +31,14 @@ export function DayPanel({ date, notes, tasks, onQuickAdd, onOpenNote, onNewNote
 
   return (
     <aside
-      aria-label="Выбранный день"
+      aria-label={t('calendar.selectedDay')}
       className="flex shrink-0 flex-col gap-4 border-t p-4 xl:w-80 xl:overflow-y-auto xl:border-t-0 xl:border-l"
     >
       <h2 className="text-sm font-medium">{formatDay(fromKey(date))}</h2>
 
       {tasks.length > 0 && (
-        <section aria-label="Задачи" className="flex flex-col gap-1">
-          <h3 className="text-xs font-medium text-muted-foreground">Задачи</h3>
+        <section aria-label={t('nav.tasks')} className="flex flex-col gap-1">
+          <h3 className="text-xs font-medium text-muted-foreground">{t('nav.tasks')}</h3>
           {tasks.map((task) => (
             <Link
               key={task.id}
@@ -55,9 +56,9 @@ export function DayPanel({ date, notes, tasks, onQuickAdd, onOpenNote, onNewNote
         </section>
       )}
 
-      <section aria-label="Заметки" className="flex flex-col gap-1">
-        <h3 className="text-xs font-medium text-muted-foreground">Заметки</h3>
-        {notes.length === 0 && <p className="text-sm text-muted-foreground">На этот день заметок нет.</p>}
+      <section aria-label={t('calendar.notes')} className="flex flex-col gap-1">
+        <h3 className="text-xs font-medium text-muted-foreground">{t('calendar.notes')}</h3>
+        {notes.length === 0 && <p className="text-sm text-muted-foreground">{t('calendar.noNotes')}</p>}
         {notes.map((note) => (
           <button
             key={note.id}
@@ -83,13 +84,13 @@ export function DayPanel({ date, notes, tasks, onQuickAdd, onOpenNote, onNewNote
 
       <form onSubmit={submit} className="flex gap-2">
         <Input
-          aria-label="Новая заметка"
-          placeholder="Новая заметка"
+          aria-label={t('calendar.newNote')}
+          placeholder={t('calendar.newNote')}
           maxLength={200}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
         />
-        <Button type="button" variant="outline" size="icon" aria-label="Заметка с подробностями" onClick={onNewNote}>
+        <Button type="button" variant="outline" size="icon" aria-label={t('calendar.detailedNote')} onClick={onNewNote}>
           <Plus />
         </Button>
       </form>

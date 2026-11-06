@@ -3,6 +3,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Plus, Sparkles } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { t } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { localDate } from '@/lib/dates'
@@ -27,8 +28,8 @@ export function DiaryLibrary() {
     queryKey: api.CAPTURES_KEY,
     fetchCaptures: api.fetchCaptures,
     resultKey: LIBRARY_KEY,
-    doneMessage: 'Запись в дневнике',
-    failedMessage: 'Не удалось разобрать запись. Текст сохранён.',
+    doneMessage: t('diary.noteSaved'),
+    failedMessage: t('diary.organizeFailedShort'),
   })
 
   const notes = useQuery({
@@ -67,55 +68,55 @@ export function DiaryLibrary() {
           <div className="flex gap-2">
             <Input
               type="search"
-              aria-label="Поиск по записям"
-              placeholder="Поиск"
+              aria-label={t('diary.searchNotes')}
+              placeholder={t('common.search')}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
             <Button variant="outline" onClick={() => setEditing({ note: null })}>
               <Plus />
-              Запись
+              {t('common.noteButton')}
             </Button>
           </div>
 
           {saveFailed && (
             <p role="alert" className="text-sm text-destructive">
-              Не удалось сохранить изменения.
+              {t('common.saveFailed')}
             </p>
           )}
           <CaptureStatus
             active={active}
             failed={failed}
-            activeLabel="Нейросеть разбирает записи"
-            failedLabel="Не удалось разобрать запись, но текст сохранён."
+            activeLabel={t('diary.organizing')}
+            failedLabel={t('diary.organizeFailedKept')}
             queryKey={api.CAPTURES_KEY}
             onRetry={api.retryCapture}
             onDelete={api.deleteCapture}
           />
 
-          {notes.isPending && <p className="text-sm text-muted-foreground">Загружаем записи…</p>}
+          {notes.isPending && <p className="text-sm text-muted-foreground">{t('diary.loading')}</p>}
           {notes.isError && !notes.data && (
             <div className="flex flex-col items-start gap-2">
-              <p className="text-sm text-muted-foreground">Не удалось загрузить записи.</p>
+              <p className="text-sm text-muted-foreground">{t('diary.loadFailed')}</p>
               <Button variant="outline" size="sm" onClick={() => notes.refetch()}>
-                Повторить
+                {t('common.retry')}
               </Button>
             </div>
           )}
           {empty &&
             (filtered ? (
-              <p className="text-sm text-muted-foreground">Ничего не найдено.</p>
+              <p className="text-sm text-muted-foreground">{t('common.nothingFound')}</p>
             ) : (
               <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
                 <p className="max-w-sm text-sm text-muted-foreground">
                   {filter.daily
-                    ? 'Здесь будут записи о ваших днях. Расскажите в дзен-режиме, что вы сегодня делали, и нейросеть добавит запись сюда.'
-                    : 'Записей пока нет. В дзен-режиме можно просто писать, а нейросеть сама разложит мысли по папкам и тегам.'}
+                    ? t('diary.emptyDaily')
+                    : t('diary.empty')}
                 </p>
                 <Button asChild>
                   <Link to="/diary/zen">
                     <Sparkles />
-                    Открыть дзен-режим
+                    {t('common.openZen')}
                   </Link>
                 </Button>
               </div>

@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { ArrowUp, Loader2, Mic, Sparkles, Square } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { t } from '@/i18n'
 import { useCurrentUser } from '@/app/account/session'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -79,7 +80,7 @@ export function ZenComposer({
       onSent()
     },
     onError: () => {
-      toast.error('Не удалось сохранить', { description: 'Текст остался в поле, можно попробовать ещё раз.' })
+      toast.error(t('zen.saveFailedTitle'), { description: t('zen.saveFailedText') })
     },
   })
 
@@ -103,12 +104,12 @@ export function ZenComposer({
   }
 
   function statusText() {
-    if (voice.status === 'recording') return `Запись ${formatDuration(voice.seconds)}`
-    if (voice.status === 'transcribing') return 'Распознаю речь…'
+    if (voice.status === 'recording') return t('zen.recording', { time: formatDuration(voice.seconds) })
+    if (voice.status === 'transcribing') return t('zen.transcribing')
     if (voice.error) return voice.error
-    if (isError) return 'Не удалось сохранить. Текст остался здесь.'
+    if (isError) return t('zen.saveFailedStatus')
     if (active > 0) return activeStatus(active)
-    if (isSuccess) return 'Сохранено'
+    if (isSuccess) return t('common.saved')
     return idleStatus
   }
 
@@ -128,7 +129,7 @@ export function ZenComposer({
         <textarea
           ref={textarea}
           autoFocus
-          aria-label="Новая запись"
+          aria-label={t('zen.newNote')}
           placeholder={placeholder}
           maxLength={MAX_TEXT_LENGTH}
           value={text}
@@ -170,8 +171,8 @@ export function ZenComposer({
               variant={recording ? 'destructive' : 'ghost'}
               size="icon"
               className="rounded-lg"
-              aria-label={recording ? 'Остановить запись' : 'Записать голосом'}
-              title={recording ? 'Остановить запись' : 'Записать голосом'}
+              aria-label={recording ? t('zen.stopRecording') : t('zen.record')}
+              title={recording ? t('zen.stopRecording') : t('zen.record')}
               disabled={transcribing}
               onClick={(event) => {
                 event.stopPropagation()
@@ -184,7 +185,7 @@ export function ZenComposer({
             <Button
               size="icon"
               className="rounded-lg"
-              aria-label="Сохранить запись"
+              aria-label={t('zen.saveNote')}
               onClick={send}
               disabled={!text.trim() || isPending}
             >

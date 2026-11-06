@@ -1,3 +1,4 @@
+import { locale } from '@/i18n'
 const WEEK_LENGTH = 7
 const MONTH_GRID_DAYS = 42
 
@@ -39,9 +40,9 @@ export function monthDays(date: Date) {
   return range(startOfWeek(new Date(date.getFullYear(), date.getMonth(), 1)), MONTH_GRID_DAYS)
 }
 
-const monthFormat = new Intl.DateTimeFormat('ru-RU', { month: 'long', year: 'numeric' })
-const shortFormat = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' })
-const dayFormat = new Intl.DateTimeFormat('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })
+const monthFormat = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' })
+const shortFormat = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' })
+const dayFormat = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' })
 
 export function formatMonth(date: Date) {
   // Intl gives "ноябрь 2026 г." in Russian; the suffix is noise in a heading.

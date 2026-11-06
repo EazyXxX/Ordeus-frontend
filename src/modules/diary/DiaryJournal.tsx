@@ -4,6 +4,7 @@ import { Plus, Sparkles } from 'lucide-react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 
+import { t } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ApiError } from '@/lib/api'
@@ -70,15 +71,15 @@ export function DiaryJournal() {
     onError: (error) =>
       toast.error(
         error instanceof ApiError && error.status === 409
-          ? 'За эту неделю записей пока нет'
-          : 'Не удалось подвести итоги',
+          ? t('journal.noWeekNotes')
+          : t('journal.weekFailed'),
       ),
   })
 
   const removeSummary = useMutation({
     mutationFn: api.deleteSummary,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: SUMMARIES_KEY }),
-    onError: () => toast.error('Не удалось удалить итоги'),
+    onError: () => toast.error(t('journal.weekDeleteFailed')),
   })
 
   // The finished week is summed up by itself. Opening this tab is what asks for
@@ -111,43 +112,42 @@ export function DiaryJournal() {
         <div className="flex gap-2">
           <Input
             type="search"
-            aria-label="Поиск по ежедневнику"
-            placeholder="Поиск"
+            aria-label={t('journal.search')}
+            placeholder={t('common.search')}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
           <Button variant="outline" onClick={() => setEditing({ note: null })}>
             <Plus />
-            Запись
+            {t('common.noteButton')}
           </Button>
         </div>
         <DailyRange from={range.from} to={range.to} onChange={setRange} />
 
         {saveFailed && (
           <p role="alert" className="text-sm text-destructive">
-            Не удалось сохранить изменения.
+            {t('common.saveFailed')}
           </p>
         )}
-        {notes.isPending && <p className="text-sm text-muted-foreground">Загружаем дни…</p>}
+        {notes.isPending && <p className="text-sm text-muted-foreground">{t('journal.loading')}</p>}
         {notes.isError && !notes.data && (
           <div className="flex flex-col items-start gap-2">
-            <p className="text-sm text-muted-foreground">Не удалось загрузить дни.</p>
+            <p className="text-sm text-muted-foreground">{t('journal.loadFailed')}</p>
             <Button variant="outline" size="sm" onClick={() => notes.refetch()}>
-              Повторить
+              {t('common.retry')}
             </Button>
           </div>
         )}
         {notes.data && weeks.length === 0 &&
           (filtered ? (
-            <p className="text-sm text-muted-foreground">Ничего не найдено.</p>
+            <p className="text-sm text-muted-foreground">{t('common.nothingFound')}</p>
           ) : (
             <div className="flex flex-col items-center gap-3 py-16 text-center">
               <p className="max-w-sm text-sm text-muted-foreground">
-                Здесь будут ваши дни и итоги недель. Расскажите в дзен-режиме, что вы сегодня делали, и нейросеть добавит
-                запись сюда.
+                {t('journal.empty')}
               </p>
               <Button asChild variant="outline">
-                <Link to="/diary/zen">Открыть дзен-режим</Link>
+                <Link to="/diary/zen">{t('common.openZen')}</Link>
               </Button>
             </div>
           ))}
@@ -167,7 +167,7 @@ export function DiaryJournal() {
                   <h2 className="text-xs text-muted-foreground">{weekLabel(week)}</h2>
                   <Button variant="ghost" size="xs" disabled={summarize.isPending} onClick={() => summarize.mutate(week)}>
                     <Sparkles />
-                    Подвести итоги недели
+                    {t('journal.summarizeWeek')}
                   </Button>
                 </div>
               )}
