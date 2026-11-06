@@ -145,6 +145,8 @@ export function OrderRing() {
       context!.clearRect(0, 0, width, height)
       context!.globalCompositeOperation = dark ? 'lighter' : 'source-over'
 
+      // White links stay visible over the colors. On a light page they turn dark.
+      context!.strokeStyle = dark ? '#ffffff' : '#171717'
       context!.lineWidth = 0.6
       for (let i = 0; i < particles.length; i += 1) {
         for (let j = i + 1; j < particles.length; j += 1) {
@@ -152,8 +154,7 @@ export function OrderRing() {
           const second = particles[j]
           const distance = Math.hypot(first.x - second.x, first.y - second.y)
           if (distance > LINK_DISTANCE) continue
-          context!.globalAlpha = (1 - distance / LINK_DISTANCE) * 0.3
-          context!.strokeStyle = first.color
+          context!.globalAlpha = (1 - distance / LINK_DISTANCE) * 0.45
           context!.beginPath()
           context!.moveTo(first.x, first.y)
           context!.lineTo(second.x, second.y)
