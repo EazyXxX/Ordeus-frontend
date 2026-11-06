@@ -29,6 +29,9 @@ export type Tag = Mark & { id: string; name: string; notes: number }
 export function colorsByName(items: { name: string; color: Color }[] = []) {
   return new Map(items.map(({ name, color }) => [name, color]))
 }
+export function emojisByName(items: (Mark & { name: string })[] = []) {
+  return new Map(items.map(({ name, emoji }) => [name, emoji]))
+}
 export function marksByName(items: (Mark & { name: string })[] = []) {
   return new Map(items.map(({ name, color, emoji }) => [name, { color, emoji }]))
 }

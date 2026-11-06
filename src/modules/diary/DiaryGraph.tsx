@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { forceX, forceY } from 'd3-force'
 import ForceGraph2D, { type ForceGraphMethods, type LinkObject, type NodeObject } from 'react-force-graph-2d'
+import { Maximize } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
@@ -9,11 +10,12 @@ import { Input } from '@/components/ui/input'
 import { COLOR_HEX } from '@/lib/colors'
 import { cn } from '@/lib/utils'
 import * as api from './api'
-import { colorsByName, LIBRARY_KEY, type Note } from './api'
+import { colorsByName, emojisByName, LIBRARY_KEY, type Note } from './api'
 import { LabelMark } from './LabelMark'
 import {
   buildGraph,
   nodeColor,
+  nodeEmoji,
   nodeId,
   rememberPositions,
   type GraphGrouping,
@@ -26,19 +28,25 @@ import { useNoteActions } from './useNoteActions'
 type Node = NodeObject<GraphNode>
 type Edge = LinkObject<GraphNode, GraphLink>
 
-const LABEL_ZOOM = 1
-const LABEL_SIZE = 12
-const BASE_RADIUS = 4
-const DIMMED_ALPHA = 0.15
-const FIT_PADDING = 48
+const LABEL_ZOOM = 1.1
+const LABEL_SIZE = 11
+const BASE_RADIUS = 8
+const DIMMED_ALPHA = 0.12
+const FIT_PADDING = 80
+const GLOW_SCALE = 5
+const GLOW_SPRITE_SIZE = 128
+const BREATH_SPEED = 1.4
+const BREATH_DEPTH = 0.12
+const PARTICLE_SPEED = 0.004
 const FIT_DURATION_MS = 400
 // Stops a graph of just a few notes from filling the whole screen.
 const MAX_ZOOM = 3
-const CHARGE_STRENGTH = -220
-const LINK_DISTANCE = 50
+const CHARGE_STRENGTH = -420
+const LINK_DISTANCE = 80
 // Pulls unlinked notes toward the middle, so they do not drift off and shrink the view.
 const GRAVITY = 0.06
 
+const LINK_CURVATURE = 0.12
 const LABEL_LENGTH = 32
 
 // Whole titles would run over each other, especially on a narrow screen.
@@ -50,19 +58,63 @@ const GROUPINGS: { value: GraphGrouping; label: string }[] = [
 ]
 
 const PALETTE = {
-  light: { label: '#262626', link: 'rgba(0, 0, 0, 0.18)', linkActive: 'rgba(0, 0, 0, 0.6)' },
-  dark: { label: '#e5e5e5', link: 'rgba(255, 255, 255, 0.18)', linkActive: 'rgba(255, 255, 255, 0.7)' },
-}
+  light: {
+    label: '#262626',
+    halo: 'rgba(255, 255, 255, 0.9)',
+    surface: '#ffffff',
+    rim: 'rgba(0, 0, 0, 0.25)',
+    link: 'rgba(0, 0, 0, 0.22)',
+    linkActive: 'rgba(0, 0, 0, 0.7)',
+    linkDimmed: 'rgba(0, 0, 0, 0.05)',
+    particle: 'rgba(0, 0, 0, 0.55)',
+    glowAlpha: 0.5,
+    blend: 'source-over',
+  },
+  dark: {
+    label: '#f5f5f5',
+    halo: 'rgba(10, 10, 10, 0.85)',
+    surface: '#171717',
+    rim: 'rgba(255, 255, 255, 0.55)',
+    link: 'rgba(255, 255, 255, 0.3)',
+    linkActive: 'rgba(255, 255, 255, 0.95)',
+    linkDimmed: 'rgba(255, 255, 255, 0.05)',
+    particle: 'rgba(255, 255, 255, 0.85)',
+    glowAlpha: 0.9,
+    blend: 'lighter',
+  },
+} as const
+
+// Glass panels that float over the graph.
+const PANEL = 'pointer-events-auto rounded-xl border bg-background/70 shadow-sm backdrop-blur-md'
 
 const radiusOf = (node: Node) => BASE_RADIUS + Math.sqrt(node.degree) * 2
 
-function subscribeToTheme(onChange: () => void) {
-  const observer = new MutationObserver(onChange)
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-  return () => observer.disconnect()
+const glowSprites = new Map<string, HTMLCanvasElement>()
+
+// A radial gradient per node per frame is slow, so each color is painted once.
+function glowSprite(color: string) {
+  const saved = glowSprites.get(color)
+  if (saved) return saved
+
+  const sprite = document.createElement('canvas')
+  sprite.width = sprite.height = GLOW_SPRITE_SIZE
+  const middle = GLOW_SPRITE_SIZE / 2
+  const context = sprite.getContext('2d')!
+  const gradient = context.createRadialGradient(middle, middle, 0, middle, middle, middle)
+  gradient.addColorStop(0, `${color}aa`)
+  gradient.addColorStop(0.35, `${color}44`)
+  gradient.addColorStop(1, `${color}00`)
+  context.fillStyle = gradient
+  context.fillRect(0, 0, GLOW_SPRITE_SIZE, GLOW_SPRITE_SIZE)
+  glowSprites.set(color, sprite)
+  return sprite
 }
 
-const isDarkTheme = () => document.documentElement.classList.contains('dark')
+// Labels fade in with zoom, and well-connected notes get theirs first.
+const labelFade = (scale: number, degree: number) => Math.min(1, Math.max(0, (scale + degree * 0.12 - LABEL_ZOOM) / 0.4))
+
+// Read while drawing, so switching the theme repaints without restarting the layout.
+const currentPalette = () => (document.documentElement.classList.contains('dark') ? PALETTE.dark : PALETTE.light)
 
 // The graph draws on a canvas, which needs its size in pixels.
 function useElementSize() {
@@ -85,7 +137,6 @@ export function DiaryGraph() {
   const graph = useRef<ForceGraphMethods<GraphNode, GraphLink> | undefined>(undefined)
   const fitted = useRef(false)
   const { ref: container, size } = useElementSize()
-  const dark = useSyncExternalStore(subscribeToTheme, isDarkTheme)
 
   const [grouping, setGrouping] = useState<GraphGrouping>('folder')
   const [group, setGroup] = useState<string | null>(null)
@@ -103,7 +154,13 @@ export function DiaryGraph() {
   const allNotes = useMemo(() => notes.data ?? [], [notes.data])
   const data = useMemo(() => buildGraph(allNotes, { grouping, group, linkedOnly }), [allNotes, grouping, group, linkedOnly])
   const colorSource = useMemo(
-    () => ({ grouping, folderColors: colorsByName(folders.data), tagColors: colorsByName(tags.data) }),
+    () => ({
+      grouping,
+      folderColors: colorsByName(folders.data),
+      tagColors: colorsByName(tags.data),
+      folderEmojis: emojisByName(folders.data),
+      tagEmojis: emojisByName(tags.data),
+    }),
     [grouping, folders.data, tags.data],
   )
   const legend = (grouping === 'folder' ? folders.data : tags.data) ?? []
@@ -127,7 +184,7 @@ export function DiaryGraph() {
   }, [hasSize])
 
   const query = search.trim().toLowerCase()
-  const palette = dark ? PALETTE.dark : PALETTE.light
+  const still = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
 
   function isHighlighted(id: string, title: string) {
     if (hoveredId) return id === hoveredId || Boolean(neighbors.get(hoveredId)?.has(id))
@@ -136,23 +193,58 @@ export function DiaryGraph() {
 
   function drawNode(node: Node, context: CanvasRenderingContext2D, scale: number) {
     const { x = 0, y = 0 } = node
+    const palette = currentPalette()
     const radius = radiusOf(node)
     const highlighted = isHighlighted(String(node.id), node.title)
+    const hovered = node.id === hoveredId
+    const color = COLOR_HEX[nodeColor(node, colorSource)]
+    const emoji = nodeEmoji(node, colorSource)
+    const alpha = highlighted ? 1 : DIMMED_ALPHA
 
-    context.globalAlpha = highlighted ? 1 : DIMMED_ALPHA
+    // Each node breathes at its own pace, so the graph feels alive at rest.
+    const phase = (node.index ?? 0) * 1.7
+    const breath = still ? 1 : 1 + Math.sin(performance.now() / 1000 * BREATH_SPEED + phase) * BREATH_DEPTH
+    const glow = radius * GLOW_SCALE * breath * (hovered ? 1.5 : 1)
+
+    context.globalAlpha = alpha * palette.glowAlpha
+    context.globalCompositeOperation = palette.blend
+    context.drawImage(glowSprite(color), x - glow / 2, y - glow / 2, glow, glow)
+    context.globalCompositeOperation = 'source-over'
+
+    context.globalAlpha = alpha
     context.beginPath()
     context.arc(x, y, radius, 0, 2 * Math.PI)
-    context.fillStyle = COLOR_HEX[nodeColor(node, colorSource)]
+    context.fillStyle = emoji ? palette.surface : color
     context.fill()
+    context.lineWidth = (hovered ? 2 : 1) / scale
+    context.strokeStyle = emoji || hovered ? color : palette.rim
+    context.stroke()
+
+    if (emoji) {
+      context.font = `${radius * 1.2}px sans-serif`
+      context.textAlign = 'center'
+      context.textBaseline = 'middle'
+      context.fillStyle = palette.label
+      context.fillText(emoji, x, y + radius * 0.06)
+    }
 
     const emphasized = hoveredId !== null || query !== ''
-    if (scale >= LABEL_ZOOM || (emphasized && highlighted)) {
+    const label = emphasized && highlighted ? 1 : labelFade(scale, node.degree) * 0.8
+    if (label > 0) {
       const fontSize = LABEL_SIZE / scale
-      context.font = `${fontSize}px sans-serif`
+      const text = shortLabel(node.title)
+      const top = y + radius + 4 / scale
+      context.globalAlpha = alpha * label
+      context.font = `${hovered ? 600 : 500} ${fontSize}px "Geist Variable", sans-serif`
       context.textAlign = 'center'
       context.textBaseline = 'top'
+      // A halo in the background color keeps a label readable over links.
+      context.lineJoin = 'round'
+      context.lineWidth = 4 / scale
+      context.strokeStyle = palette.halo
+      context.strokeText(text, x, top)
       context.fillStyle = palette.label
-      context.fillText(shortLabel(node.title), x, y + radius + 2 / scale)
+      context.fillText(text, x, top)
     }
     context.globalAlpha = 1
   }
@@ -166,6 +258,12 @@ export function DiaryGraph() {
 
   function linkActive(link: Edge) {
     return hoveredId !== null && (nodeId(link.source as GraphNode) === hoveredId || nodeId(link.target as GraphNode) === hoveredId)
+  }
+
+  function linkColor(link: Edge) {
+    const palette = currentPalette()
+    if (hoveredId === null) return palette.link
+    return linkActive(link) ? palette.linkActive : palette.linkDimmed
   }
 
   function finishLayout() {
@@ -201,96 +299,126 @@ export function DiaryGraph() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b px-4 py-2">
-        <Input
-          type="search"
-          aria-label="Найти заметку на графе"
-          placeholder="Найти на графе"
-          className="h-8 w-full sm:w-56"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <input type="checkbox" checked={linkedOnly} onChange={(event) => setLinkedOnly(event.target.checked)} />
-          Только со связями
-        </label>
-        <p className="ml-auto text-xs text-muted-foreground">
-          Заметок: {data.nodes.length} · связей: {data.links.length}
-        </p>
-      </div>
-
-      <div className="flex shrink-0 items-center gap-1 overflow-x-auto border-b px-4 py-1.5">
-        <div role="group" aria-label="Чем раскрашивать граф" className="mr-2 flex shrink-0 gap-1 border-r pr-2">
-          {GROUPINGS.map(({ value, label }) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={grouping === value}
-              onClick={() => {
-                setGrouping(value)
-                setGroup(null)
-              }}
-              className={cn(
-                'rounded-md px-2 py-0.5 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                grouping === value ? 'bg-muted font-medium' : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        {legend.map(({ id, name, ...mark }) => (
-          <button
-            key={id}
-            type="button"
-            aria-pressed={group === name}
-            onClick={() => setGroup(group === name ? null : name)}
-            className={cn(
-              'flex shrink-0 items-center gap-1.5 rounded-md px-2 py-0.5 text-xs outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring',
-              group === name && 'bg-muted font-medium',
-            )}
-          >
-            <LabelMark mark={mark} />
-            {name}
-          </button>
-        ))}
-      </div>
-
       {saveFailed && (
         <p role="alert" className="border-b px-4 py-2 text-sm text-destructive">
           Не удалось сохранить изменения.
         </p>
       )}
 
-      <div
-        ref={container}
-        role="img"
-        aria-label="Граф заметок и связей между ними"
-        className="min-h-0 flex-1 overflow-hidden"
-        onMouseLeave={() => setHoveredId(null)}
-      >
-        {hasSize && (
-          <ForceGraph2D<GraphNode, GraphLink>
-            ref={graph}
-            width={size.width}
-            height={size.height}
-            graphData={data}
-            backgroundColor="rgba(0, 0, 0, 0)"
-            autoPauseRedraw={false}
-            maxZoom={MAX_ZOOM}
-            nodeRelSize={BASE_RADIUS}
-            nodeLabel=""
-            nodeCanvasObject={drawNode}
-            nodePointerAreaPaint={paintHitArea}
-            linkColor={(link) => (linkActive(link) ? palette.linkActive : palette.link)}
-            linkWidth={(link) => (linkActive(link) ? 2 : 1)}
-            warmupTicks={100}
-            cooldownTicks={100}
-            onEngineStop={finishLayout}
-            onNodeHover={(node) => setHoveredId(node ? String(node.id) : null)}
-            onNodeClick={(node) => setOpened(allNotes.find((note) => note.id === node.id) ?? null)}
-          />
-        )}
+      <div className="relative min-h-0 flex-1 overflow-hidden bg-[radial-gradient(var(--border)_1px,transparent_1px)] bg-size-[24px_24px]">
+        <div
+          ref={container}
+          role="img"
+          aria-label="Граф заметок и связей между ними"
+          className="absolute inset-0"
+          onMouseLeave={() => setHoveredId(null)}
+        >
+          {hasSize && (
+            <ForceGraph2D<GraphNode, GraphLink>
+              ref={graph}
+              width={size.width}
+              height={size.height}
+              graphData={data}
+              backgroundColor="rgba(0, 0, 0, 0)"
+              autoPauseRedraw={false}
+              maxZoom={MAX_ZOOM}
+              nodeRelSize={BASE_RADIUS}
+              nodeLabel=""
+              nodeCanvasObject={drawNode}
+              nodePointerAreaPaint={paintHitArea}
+              linkColor={linkColor}
+              linkWidth={(link) => (linkActive(link) ? 1.8 : 1)}
+              linkCurvature={LINK_CURVATURE}
+              linkDirectionalParticles={still ? 0 : 1}
+              linkDirectionalParticleWidth={(link) => (linkActive(link) ? 3 : 1.8)}
+              linkDirectionalParticleSpeed={PARTICLE_SPEED}
+              linkDirectionalParticleColor={() => currentPalette().particle}
+              warmupTicks={100}
+              cooldownTicks={100}
+              onEngineStop={finishLayout}
+              onNodeHover={(node) => setHoveredId(node ? String(node.id) : null)}
+              onNodeClick={(node) => setOpened(allNotes.find((note) => note.id === node.id) ?? null)}
+            />
+          )}
+        </div>
+
+        <div className="pointer-events-none absolute inset-x-3 top-3 flex flex-wrap items-center gap-2">
+          <div className={cn(PANEL, 'w-full sm:w-60')}>
+            <Input
+              type="search"
+              aria-label="Найти заметку на графе"
+              placeholder="Найти на графе"
+              className="border-0 bg-transparent dark:bg-transparent"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </div>
+          <button
+            type="button"
+            aria-pressed={linkedOnly}
+            onClick={() => setLinkedOnly(!linkedOnly)}
+            className={cn(
+              PANEL,
+              'px-3 py-1.5 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              linkedOnly ? 'font-medium' : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            Только со связями
+          </button>
+          <div className={cn(PANEL, 'ml-auto flex items-center gap-2 py-0.5 pr-0.5 pl-3 text-xs text-muted-foreground')}>
+            <span className="tabular-nums">
+              {data.nodes.length} · {data.links.length}
+            </span>
+            <span className="sr-only">Заметок и связей на графе</span>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              aria-label="Показать весь граф"
+              onClick={() => graph.current?.zoomToFit(FIT_DURATION_MS, FIT_PADDING)}
+            >
+              <Maximize />
+            </Button>
+          </div>
+        </div>
+
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 flex justify-center">
+          <div className={cn(PANEL, 'flex max-w-full items-center gap-1 overflow-x-auto p-1 [scrollbar-width:none]')}>
+            <div role="group" aria-label="Чем раскрашивать граф" className="mr-1 flex shrink-0 gap-1 border-r pr-2">
+              {GROUPINGS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={grouping === value}
+                  onClick={() => {
+                    setGrouping(value)
+                    setGroup(null)
+                  }}
+                  className={cn(
+                    'rounded-md px-2 py-1 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    grouping === value ? 'bg-muted font-medium' : 'text-muted-foreground hover:text-foreground',
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {legend.map(({ id, name, ...mark }) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={group === name}
+                onClick={() => setGroup(group === name ? null : name)}
+                className={cn(
+                  'flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring',
+                  group === name && 'bg-muted font-medium',
+                )}
+              >
+                <LabelMark mark={mark} />
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {opened && (

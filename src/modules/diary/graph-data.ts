@@ -45,6 +45,8 @@ export type ColorSource = {
   grouping: GraphGrouping
   folderColors: Map<string, Color>
   tagColors: Map<string, Color>
+  folderEmojis: Map<string, string>
+  tagEmojis: Map<string, string>
 }
 
 // Read while drawing, so repainting a folder does not restart the layout.
@@ -53,6 +55,11 @@ export function nodeColor(node: GraphNode, { grouping, folderColors, tagColors }
   // A note can have several tags, so it takes the first one that was painted.
   const painted = node.tags.map((tag) => tagColors.get(tag)).find((color) => color && color !== NEUTRAL_COLOR)
   return painted ?? NEUTRAL_COLOR
+}
+
+export function nodeEmoji(node: GraphNode, { grouping, folderEmojis, tagEmojis }: ColorSource) {
+  if (grouping === 'folder') return folderEmojis.get(node.folder) ?? ''
+  return node.tags.map((tag) => tagEmojis.get(tag)).find(Boolean) ?? ''
 }
 
 function belongsToGroup(note: Note, grouping: GraphGrouping, group: string) {
