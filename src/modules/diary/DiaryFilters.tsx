@@ -95,9 +95,6 @@ function RenameDialog({ folder, onClose, onRename }: RenameDialogProps) {
   )
 }
 
-// The diary is a folder of its own: it has dates instead of folders and tags.
-const OUTSIDE_DIARY = { daily: undefined, from: undefined, to: undefined }
-
 type EmojiTarget = {
   name: string
   emoji: string
@@ -173,10 +170,10 @@ export function DiaryFilters({
 
       <h2 className="hidden px-2 pt-3 pb-1 text-xs font-medium text-muted-foreground md:block">Папки</h2>
       <FilterButton
-        label="Ежедневник"
+        label="Ежедневные заметки"
         icon={CalendarDays}
         active={Boolean(filter.daily)}
-        onClick={() => onChange({ daily: 'true', from: filter.from, to: filter.to })}
+        onClick={() => onChange({ daily: 'true' })}
       />
       {folders.map((folder) => (
         <div key={folder.id} className="group flex shrink-0 items-center md:shrink">
@@ -185,7 +182,7 @@ export function DiaryFilters({
             mark={folder}
             count={folder.notes}
             active={filter.folder === folder.id}
-            onClick={() => onChange({ ...filter, ...OUTSIDE_DIARY, folder: folder.id })}
+            onClick={() => onChange({ ...filter, daily: undefined, folder: folder.id })}
           />
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
@@ -230,7 +227,7 @@ export function DiaryFilters({
             mark={tag}
             count={tag.notes}
             active={filter.tag === tag.name}
-            onClick={() => onChange({ ...filter, ...OUTSIDE_DIARY, tag: tag.name })}
+            onClick={() => onChange({ ...filter, daily: undefined, tag: tag.name })}
           />
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>

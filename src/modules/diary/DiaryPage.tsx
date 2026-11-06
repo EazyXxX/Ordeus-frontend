@@ -3,20 +3,26 @@ import { useLocation } from 'react-router'
 
 import { ModeTabs } from '@/components/ModeTabs'
 import { DiaryLibrary } from './DiaryLibrary'
+import { DiaryJournal } from './DiaryJournal'
 import { ZenMode } from './ZenMode'
 
 // The graph library is large, so it loads only when this tab is opened.
 const DiaryGraph = lazy(() => import('./DiaryGraph').then(({ DiaryGraph }) => ({ default: DiaryGraph })))
 
+const DiaryBook = lazy(() => import('./DiaryBook').then(({ DiaryBook }) => ({ default: DiaryBook })))
+
 const TABS = [
   { to: '/diary', label: 'Записи' },
+  { to: '/diary/journal', label: 'Ежедневник' },
   { to: '/diary/graph', label: 'Граф' },
   { to: '/diary/zen', label: 'Дзен' },
 ]
 
 const VIEWS: Record<string, ComponentType> = {
+  '/diary/journal': DiaryJournal,
   '/diary/graph': DiaryGraph,
   '/diary/zen': ZenMode,
+  '/diary/book': DiaryBook,
 }
 
 export default function DiaryPage() {
@@ -26,7 +32,7 @@ export default function DiaryPage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <ModeTabs label="Режим дневника" tabs={TABS} />
-      <Suspense fallback={<p className="p-6 text-sm text-muted-foreground">Загружаем граф…</p>}>
+      <Suspense fallback={<p className="p-6 text-sm text-muted-foreground">Загружаем…</p>}>
         <View />
       </Suspense>
     </div>

@@ -1,7 +1,7 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Plus, Sparkles } from 'lucide-react'
-import { Link, useSearchParams } from 'react-router'
+import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,18 +10,16 @@ import { CaptureStatus } from '@/components/zen/CaptureStatus'
 import { useCaptures } from '@/components/zen/useCaptures'
 import * as api from './api'
 import { LIBRARY_KEY, marksByName, type Note, type NoteFilter } from './api'
-import { DailyRange } from './DailyRange'
 import { DiaryFilters } from './DiaryFilters'
 import { NoteDialog } from './NoteDialog'
-import { NoteDays, NoteList } from './NoteList'
+import { NoteList } from './NoteList'
 import { useNoteActions } from './useNoteActions'
 
 type Editing = { note: Note | null } | null
 
 export function DiaryLibrary() {
   const { save, saveFailed, saveNote, removeNote } = useNoteActions()
-  const [params] = useSearchParams()
-  const [filter, setFilter] = useState<NoteFilter>(params.has('daily') ? { daily: 'true' } : {})
+  const [filter, setFilter] = useState<NoteFilter>({})
   const [search, setSearch] = useState('')
   const [editing, setEditing] = useState<Editing>(null)
   const query = useDeferredValue(search.trim())
@@ -46,8 +44,7 @@ export function DiaryLibrary() {
   const tagMarks = useMemo(() => marksByName(tags.data), [tags.data])
 
   const empty = !notes.isPending && !notes.isError && notes.data?.length === 0
-  const filtered = Boolean(filter.folder || filter.tag || filter.from || filter.to || query)
-  const Notes = filter.daily ? NoteDays : NoteList
+  const filtered = Boolean(filter.folder || filter.tag || query)
 
   return (
     <div className="flex min-h-0 flex-1 flex-col md:flex-row">
@@ -80,14 +77,6 @@ export function DiaryLibrary() {
               Запись
             </Button>
           </div>
-
-          {filter.daily && (
-            <DailyRange
-              from={filter.from}
-              to={filter.to}
-              onChange={(range) => setFilter({ ...filter, ...range })}
-            />
-          )}
 
           {saveFailed && (
             <p role="alert" className="text-sm text-destructive">
@@ -132,7 +121,7 @@ export function DiaryLibrary() {
               </div>
             ))}
           {notes.data && (
-            <Notes
+            <NoteList
               notes={notes.data}
               folderMarks={folderMarks}
               tagMarks={tagMarks}

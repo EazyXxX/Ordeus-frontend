@@ -71,6 +71,60 @@ export const fetchTags = () => request<Tag[]>(`${BASE}/tags`)
 export const updateTag = (id: string, changes: { color?: Color; emoji?: string }) =>
   send(`/tags/${id}`, 'PATCH', changes)
 
+export type Summary = {
+  id: string
+  // The Monday the week starts on.
+  week: string
+  status: 'pending' | 'processing' | 'done' | 'failed'
+  error: string
+  headline: string
+  text: string
+  highlights: string[]
+  themes: string[]
+  focus: string
+  noteCount: number
+  updatedAt: string
+}
+
+export type Mood =
+  | 'joy'
+  | 'inspired'
+  | 'grateful'
+  | 'calm'
+  | 'neutral'
+  | 'obsessed'
+  | 'swings'
+  | 'apathy'
+  | 'tired'
+  | 'sad'
+  | 'anxious'
+  | 'angry'
+
+export type Day = {
+  date: string
+  moods: Mood[]
+  score: number | null
+  summaryStatus: 'none' | 'pending' | 'processing' | 'done' | 'failed' | 'deleted'
+  summary: string
+  focus: string
+  summarizedAt: string | null
+}
+
+export const DAYS_KEY = ['diary', 'days']
+
+export const fetchDays = () => request<Day[]>(`${BASE}/days`)
+export const updateDay = (date: string, mark: Pick<Day, 'moods' | 'score'>) => send(`/days/${date}`, 'PUT', mark)
+export const requestDaySummary = (date: string, force: boolean) =>
+  send(`/days/${date}/summary`, 'POST', { force })
+
+export const deleteDaySummary = (date: string) => send(`/days/${date}/summary`, 'DELETE')
+
+export const SUMMARIES_KEY = ['diary', 'summaries']
+
+export const fetchSummaries = () => request<Summary[]>(`${BASE}/summaries`)
+export const requestSummary = (week: string, force: boolean) => send('/summaries', 'POST', { week, force })
+export const deleteSummary = (id: string) => send(`/summaries/${id}`, 'DELETE')
+
 export const fetchCaptures = () => request<Capture[]>(`${BASE}/captures`)
 // The author's date, so words like "yesterday" mean the day they were written.
 export const createCapture = (text: string) => send('/captures', 'POST', { text, today: localDate(new Date()) })
