@@ -2,6 +2,7 @@ import { ArrowRight, BookOpen, CalendarDays, KanbanSquare, Sparkles, UserRound, 
 import { Link } from 'react-router'
 
 import { useCurrentUser } from '@/app/account/session'
+import { OrderRing } from '@/app/OrderRing'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -57,9 +58,20 @@ const FEATURES: Feature[] = [
   },
 ]
 
-function FeatureCard({ title, text, icon: Icon, wide, links }: Feature) {
+const RISE = 'motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700 motion-safe:fill-mode-both'
+
+const delayed = (seconds: number) => ({ animationDelay: `${seconds}s` })
+
+function FeatureCard({ title, text, icon: Icon, wide, links, delay }: Feature & { delay: number }) {
   return (
-    <section className={cn('flex flex-col gap-4 rounded-xl border bg-card p-5', wide && 'md:col-span-2')}>
+    <section
+      style={delayed(delay)}
+      className={cn(
+        'flex flex-col gap-4 rounded-xl border bg-card p-5 transition-colors hover:border-foreground/20',
+        RISE,
+        wide && 'md:col-span-2',
+      )}
+    >
       <div className="flex items-start gap-3">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted" aria-hidden>
           <Icon className="size-4.5" />
@@ -98,29 +110,38 @@ export default function HomePage() {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-4 py-10 md:py-14">
-        <section className="flex flex-col items-start gap-4">
-          <p className="text-sm text-muted-foreground">Привет, {user.name.trim().split(/\s+/)[0]}</p>
-          <h2 className="text-3xl font-semibold tracking-tight text-balance md:text-5xl">Порядок в голове и в делах</h2>
-          <p className="max-w-2xl text-base text-pretty text-muted-foreground md:text-lg">
-            Ordeus, от латинского ordo, «порядок». Дневник, задачи и календарь в одном месте: вы просто записываете, что
-            пришло в голову, а нейросеть раскладывает всё по полочкам.
-          </p>
-          <div className="flex flex-wrap gap-2 pt-1">
-            <Button asChild size="lg">
-              <Link to="/diary/zen">
-                <Sparkles />
-                Написать в дневник
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/tasks/zen">Накидать задачи</Link>
-            </Button>
+        <section className="grid items-center gap-6 md:grid-cols-[minmax(0,1fr)_18rem] lg:grid-cols-[minmax(0,1fr)_21rem]">
+          <div className="order-first h-56 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-1000 md:order-last md:h-80 lg:h-84">
+            <OrderRing />
+          </div>
+          <div className="flex flex-col items-start gap-4">
+            <p style={delayed(0.1)} className={cn('text-sm text-muted-foreground', RISE)}>
+              Привет, {user.name.trim().split(/\s+/)[0]}
+            </p>
+            <h2 style={delayed(0.2)} className={cn('text-3xl font-semibold tracking-tight text-balance md:text-5xl', RISE)}>
+              Порядок в голове и в делах
+            </h2>
+            <p style={delayed(0.35)} className={cn('max-w-2xl text-base text-pretty text-muted-foreground md:text-lg', RISE)}>
+              Ordeus, от латинского ordo, «порядок». Дневник, задачи и календарь в одном месте: вы просто записываете, что
+              пришло в голову, а нейросеть раскладывает всё по полочкам.
+            </p>
+            <div style={delayed(0.5)} className={cn('flex flex-wrap gap-2 pt-1', RISE)}>
+              <Button asChild size="lg">
+                <Link to="/diary/zen">
+                  <Sparkles />
+                  Написать в дневник
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link to="/tasks/zen">Накидать задачи</Link>
+              </Button>
+            </div>
           </div>
         </section>
 
         <ol className="grid gap-4 md:grid-cols-3">
           {STEPS.map(({ title, text }, index) => (
-            <li key={title} className="flex flex-col gap-1">
+            <li key={title} style={delayed(0.6 + index * 0.1)} className={cn('flex flex-col gap-1', RISE)}>
               <span className="text-xs font-medium text-muted-foreground tabular-nums">{index + 1}</span>
               <span className="text-sm font-medium">{title}</span>
               <span className="text-sm text-muted-foreground">{text}</span>
@@ -129,8 +150,8 @@ export default function HomePage() {
         </ol>
 
         <div className="grid gap-4 md:grid-cols-2">
-          {FEATURES.map((feature) => (
-            <FeatureCard key={feature.title} {...feature} />
+          {FEATURES.map((feature, index) => (
+            <FeatureCard key={feature.title} {...feature} delay={0.9 + index * 0.1} />
           ))}
         </div>
       </div>
