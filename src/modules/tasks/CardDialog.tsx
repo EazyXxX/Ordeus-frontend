@@ -17,7 +17,6 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import type { Color } from '@/lib/colors'
 import { hasTouchScreen } from '@/lib/utils'
 import type { Card, CardInput, Column } from './api'
 import { PRIORITIES, PRIORITY_LABELS, type Priority } from './appearance'
@@ -52,7 +51,7 @@ type CardDialogProps = {
 export function CardDialog({ card, columns, onClose, onSave, onDelete }: CardDialogProps) {
   const [title, setTitle] = useState(card.title)
   const [description, setDescription] = useState(card.description)
-  const [color, setColor] = useState<Color | ''>(card.color)
+  const [color, setColor] = useState(card.color)
   const [priority, setPriority] = useState<Priority>(card.priority)
   const [dueDate, setDueDate] = useState(card.dueDate ?? '')
   const [columnId, setColumnId] = useState(card.columnId)
@@ -148,7 +147,7 @@ export function CardDialog({ card, columns, onClose, onSave, onDelete }: CardDia
                 onChange={(event) => setDueDate(event.target.value)}
               />
             </Field>
-            <ColorPicker value={color} allowNone onChange={setColor} />
+            <ColorPicker value={color} onChange={setColor} />
 
             <dl className="mt-1 flex flex-col gap-1 text-xs text-muted-foreground">
               <div>

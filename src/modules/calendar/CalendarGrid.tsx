@@ -53,7 +53,7 @@ function DayCell({ day, view, outside, today, selected, notes, tasks, onSelect }
   const total = notes.length + tasks.length
   const limit = view === 'month' ? MONTH_CELL_ITEMS : total
   const items = [
-    ...tasks.map((task) => ({ id: task.id, label: task.title, color: task.color || task.columnColor, task: true })),
+    ...tasks.map((task) => ({ id: task.id, label: task.title, color: task.color, task: true })),
     ...notes.map((note) => ({
       id: note.id,
       label: note.time ? `${note.time} ${note.title}` : note.title,

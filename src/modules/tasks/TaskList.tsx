@@ -112,7 +112,7 @@ export function TaskList({ columns, onAddCard, onOpenCard }: TaskListProps) {
 
                 return (
                   <tr key={card.id} className="border-b last:border-b-0 hover:bg-muted/40">
-                    <td className={cn('px-3 py-2', card.color && ['border-l-4', COLOR_EDGE[card.color]])}>
+                    <td className={cn('border-l-4 px-3 py-2', COLOR_EDGE[card.color])}>
                       <button
                         type="button"
                         onClick={() => onOpenCard(card)}

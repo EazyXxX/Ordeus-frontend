@@ -12,7 +12,7 @@ export type ChecklistItem = {
 export type CardInput = {
   title: string
   description: string
-  color: Color | ''
+  color: Color
   priority: Priority
   dueDate: string | null
   checklist: ChecklistItem[]

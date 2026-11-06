@@ -16,7 +16,7 @@ export type CalendarTask = {
   id: string
   date: string
   title: string
-  color: Color | ''
+  color: Color
   priority: string
   columnTitle: string
   columnColor: Color

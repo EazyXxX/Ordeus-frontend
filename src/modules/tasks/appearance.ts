@@ -16,8 +16,8 @@ export const COLOR_EDGE: Record<Color, string> = {
   pink: 'border-l-pink-500',
 }
 
-export function cardClass(color: Color | '') {
-  return cn('rounded-md border bg-card p-2.5', color && ['border-l-4', COLOR_EDGE[color]])
+export function cardClass(color: Color) {
+  return cn('rounded-md border border-l-4 bg-card p-2.5', COLOR_EDGE[color])
 }
 
 export const PRIORITIES = ['none', 'low', 'medium', 'high', 'urgent'] as const
