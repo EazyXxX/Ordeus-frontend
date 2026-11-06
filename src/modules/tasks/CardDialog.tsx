@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import type { Color } from '@/lib/colors'
+import { hasTouchScreen } from '@/lib/utils'
 import type { Card, CardInput, Column } from './api'
 import { PRIORITIES, PRIORITY_LABELS, type Priority } from './appearance'
 import { Checklist, type ChecklistRow } from './Checklist'
@@ -86,7 +87,10 @@ export function CardDialog({ card, columns, onClose, onSave, onDelete }: CardDia
 
   return (
     <Dialog open onOpenChange={(open) => !open && close()}>
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-3xl">
+      <DialogContent
+        className="max-h-[90svh] overflow-y-auto sm:max-w-3xl max-sm:h-dvh max-sm:max-h-dvh max-sm:max-w-full max-sm:rounded-none"
+        onOpenAutoFocus={(event) => hasTouchScreen() && event.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="sr-only">Карточка</DialogTitle>
           <DialogDescription className="sr-only">Подробности задачи. Изменения сохраняются при закрытии.</DialogDescription>

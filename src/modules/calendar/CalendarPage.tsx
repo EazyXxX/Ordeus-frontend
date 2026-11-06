@@ -72,8 +72,8 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
-      <div className="flex min-w-0 flex-1 flex-col gap-3 p-4 lg:overflow-y-auto">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto xl:flex-row xl:overflow-hidden">
+      <div className="flex min-w-0 flex-col gap-3 p-4 xl:flex-1 xl:overflow-y-auto">
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="icon" aria-label="Назад" onClick={() => step(-1)}>
             <ChevronLeft />
@@ -93,7 +93,7 @@ export default function CalendarPage() {
                 aria-pressed={view === value}
                 onClick={() => setView(value)}
                 className={cn(
-                  'rounded-md px-3 py-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  'rounded-md px-3 py-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring max-lg:py-1.5',
                   view === value ? 'bg-muted font-medium' : 'text-muted-foreground hover:text-foreground',
                 )}
               >

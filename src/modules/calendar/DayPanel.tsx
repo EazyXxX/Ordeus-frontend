@@ -31,7 +31,7 @@ export function DayPanel({ date, notes, tasks, onQuickAdd, onOpenNote, onNewNote
   return (
     <aside
       aria-label="Выбранный день"
-      className="flex shrink-0 flex-col gap-4 border-t p-4 lg:w-80 lg:overflow-y-auto lg:border-t-0 lg:border-l"
+      className="flex shrink-0 flex-col gap-4 border-t p-4 xl:w-80 xl:overflow-y-auto xl:border-t-0 xl:border-l"
     >
       <h2 className="text-sm font-medium">{formatDay(fromKey(date))}</h2>
 

@@ -7,14 +7,15 @@ import { modules } from '@/modules/registry'
 export function AppShell() {
   const { pathname } = useLocation()
   const current = modules.find((module) => pathname.startsWith(module.path))
+  const title = { '/': 'Главная', '/account': 'Личный кабинет' }[pathname] ?? current?.title
 
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="min-w-0">
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <h1 className="text-sm font-medium">{pathname === '/account' ? 'Личный кабинет' : current?.title}</h1>
+          <SidebarTrigger className="-ml-1 max-lg:size-9" />
+          <h1 className="text-sm font-medium">{title}</h1>
         </header>
         <main className="flex min-h-0 flex-1 flex-col">
           <Outlet />

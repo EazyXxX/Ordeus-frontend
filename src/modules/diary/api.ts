@@ -21,13 +21,19 @@ export type Note = {
 
 export type NoteInput = Pick<Note, 'title' | 'body' | 'folder' | 'tags' | 'dailyDate'> & { linkIds: string[] }
 
-export type Folder = { id: string; name: string; color: Color; notes: number }
-export type Tag = { id: string; name: string; color: Color; notes: number }
+// How a folder or tag looks next to its name: the emoji, or a color dot without one.
+export type Mark = { color: Color; emoji: string }
+
+export type Folder = Mark & { id: string; name: string; notes: number }
+export type Tag = Mark & { id: string; name: string; notes: number }
 export function colorsByName(items: { name: string; color: Color }[] = []) {
   return new Map(items.map(({ name, color }) => [name, color]))
 }
+export function marksByName(items: (Mark & { name: string })[] = []) {
+  return new Map(items.map(({ name, color, emoji }) => [name, { color, emoji }]))
+}
 
-export type NoteFilter = { folder?: string; tag?: string; q?: string; daily?: string }
+export type NoteFilter = { folder?: string; tag?: string; q?: string; daily?: string; from?: string; to?: string }
 
 // Everything derived from notes shares this prefix, so it refreshes together.
 export const LIBRARY_KEY = ['diary', 'library']
@@ -53,13 +59,14 @@ export const updateNote = (id: string, input: NoteInput) => send(`/notes/${id}`,
 export const deleteNote = (id: string) => send(`/notes/${id}`, 'DELETE')
 
 export const fetchFolders = () => request<Folder[]>(`${BASE}/folders`)
-export const updateFolder = (id: string, changes: { name?: string; color?: Color }) =>
+export const updateFolder = (id: string, changes: { name?: string; color?: Color; emoji?: string }) =>
   send(`/folders/${id}`, 'PATCH', changes)
 export const deleteFolder = (id: string) => send(`/folders/${id}`, 'DELETE')
 
 export const deleteTag = (id: string) => send(`/tags/${id}`, 'DELETE')
 export const fetchTags = () => request<Tag[]>(`${BASE}/tags`)
-export const updateTagColor = (id: string, color: Color) => send(`/tags/${id}`, 'PATCH', { color })
+export const updateTag = (id: string, changes: { color?: Color; emoji?: string }) =>
+  send(`/tags/${id}`, 'PATCH', changes)
 
 export const fetchCaptures = () => request<Capture[]>(`${BASE}/captures`)
 // The author's date, so words like "yesterday" mean the day they were written.

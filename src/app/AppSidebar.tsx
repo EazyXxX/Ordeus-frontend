@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router'
+import { Link, NavLink, useLocation } from 'react-router'
 
 import { AccountMenu } from '@/app/account/AccountMenu'
 import { ServerStatus } from '@/app/ServerStatus'
@@ -25,10 +25,15 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex h-8 items-center gap-2 px-2">
+        <Link
+          to="/"
+          aria-label="Ordeus, на главную"
+          onClick={() => setOpenMobile(false)}
+          className="flex h-8 items-center gap-2 rounded-md px-2 outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring group-data-[collapsible=icon]:px-1.5"
+        >
           <img src="/favicon.svg" alt="" className="size-5 shrink-0 dark:invert" />
           <span className="truncate font-semibold group-data-[collapsible=icon]:hidden">Ordeus</span>
-        </div>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

@@ -145,7 +145,7 @@ export function KanbanBoard({ columns: savedColumns, filter, save, onOpenCard }:
       onDragEnd={handleDragEnd}
       onDragCancel={() => finishDrag(null)}
     >
-      <div className="flex min-h-0 flex-1 items-start gap-3 overflow-x-auto p-4">
+      <div className="flex min-h-0 flex-1 items-start gap-3 overflow-x-auto scroll-pl-4 p-4 max-md:snap-x max-md:snap-proximity">
         <SortableContext items={visibleColumns.map((column) => column.id)} strategy={horizontalListSortingStrategy}>
           {visibleColumns.map((column) => (
             <KanbanColumn

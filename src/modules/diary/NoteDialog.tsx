@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { hasTouchScreen } from '@/lib/utils'
 import type { Folder, Note, NoteInput, NoteRef } from './api'
 
 const parseTags = (value: string) =>
@@ -25,6 +26,8 @@ const parseTags = (value: string) =>
 
 type NoteDialogProps = {
   note: Note | null
+  // Prefills the day of a new note.
+  defaultDailyDate?: string
   folders: Folder[]
   allNotes: Note[]
   onClose: () => void
@@ -32,13 +35,13 @@ type NoteDialogProps = {
   onDelete: () => void
 }
 
-export function NoteDialog({ note, folders, allNotes, onClose, onSave, onDelete }: NoteDialogProps) {
+export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onClose, onSave, onDelete }: NoteDialogProps) {
   const [title, setTitle] = useState(note?.title ?? '')
   const [body, setBody] = useState(note?.body ?? '')
   const [folder, setFolder] = useState(note?.folder ?? '')
   const [tags, setTags] = useState(note?.tags.join(', ') ?? '')
   const [links, setLinks] = useState<NoteRef[]>(note?.links ?? [])
-  const [dailyDate, setDailyDate] = useState(note?.dailyDate ?? '')
+  const [dailyDate, setDailyDate] = useState(note ? (note.dailyDate ?? '') : defaultDailyDate)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   const linkOptions = allNotes.filter(
@@ -66,7 +69,10 @@ export function NoteDialog({ note, folders, allNotes, onClose, onSave, onDelete 
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="flex h-[90svh] max-h-[90svh] w-full flex-col overflow-hidden sm:max-w-5xl">
+      <DialogContent
+        className="flex h-[90svh] max-h-[90svh] w-full flex-col overflow-hidden sm:max-w-5xl max-sm:h-dvh max-sm:max-h-dvh max-sm:max-w-full max-sm:rounded-none"
+        onOpenAutoFocus={(event) => note && hasTouchScreen() && event.preventDefault()}
+      >
         <form onSubmit={submit} className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
           <DialogHeader>
             <DialogTitle>{note ? 'Запись' : 'Новая запись'}</DialogTitle>
@@ -94,7 +100,7 @@ export function NoteDialog({ note, folders, allNotes, onClose, onSave, onDelete 
 
             <aside className="flex min-w-0 flex-col gap-3 md:overflow-y-auto">
               <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
-                Дейли-заметка за день
+                День в ежедневнике
                 <Input type="date" value={dailyDate} onChange={(event) => setDailyDate(event.target.value)} />
               </label>
               <Input

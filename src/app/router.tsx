@@ -6,8 +6,6 @@ import { RequireAuth } from '@/app/account/RequireAuth'
 import { RouteError } from '@/app/RouteError'
 import { modules } from '@/modules/registry'
 
-const home = modules[0].path
-
 export const router = createBrowserRouter([
   { path: '/login', element: <AuthPage mode="login" />, errorElement: <RouteError /> },
   { path: '/register', element: <AuthPage mode="register" />, errorElement: <RouteError /> },
@@ -19,7 +17,11 @@ export const router = createBrowserRouter([
     ),
     errorElement: <RouteError />,
     children: [
-      { index: true, element: <Navigate to={home} replace /> },
+      {
+        index: true,
+        errorElement: <RouteError />,
+        lazy: async () => ({ Component: (await import('@/app/HomePage')).default }),
+      },
       ...modules.map(({ path, load }) => ({
         path: `${path}/*`,
         errorElement: <RouteError />,
@@ -30,7 +32,7 @@ export const router = createBrowserRouter([
         errorElement: <RouteError />,
         lazy: async () => ({ Component: (await import('@/app/account/AccountPage')).default }),
       },
-      { path: '*', element: <Navigate to={home} replace /> },
+      { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
 ])

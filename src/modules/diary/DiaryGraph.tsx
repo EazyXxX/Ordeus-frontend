@@ -6,10 +6,11 @@ import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { COLOR_DOT, COLOR_HEX } from '@/lib/colors'
+import { COLOR_HEX } from '@/lib/colors'
 import { cn } from '@/lib/utils'
 import * as api from './api'
 import { colorsByName, LIBRARY_KEY, type Note } from './api'
+import { LabelMark } from './LabelMark'
 import {
   buildGraph,
   nodeColor,
@@ -37,6 +38,11 @@ const CHARGE_STRENGTH = -220
 const LINK_DISTANCE = 50
 // Pulls unlinked notes toward the middle, so they do not drift off and shrink the view.
 const GRAVITY = 0.06
+
+const LABEL_LENGTH = 32
+
+// Whole titles would run over each other, especially on a narrow screen.
+const shortLabel = (title: string) => (title.length > LABEL_LENGTH ? `${title.slice(0, LABEL_LENGTH).trimEnd()}…` : title)
 
 const GROUPINGS: { value: GraphGrouping; label: string }[] = [
   { value: 'folder', label: 'Папки' },
@@ -146,7 +152,7 @@ export function DiaryGraph() {
       context.textAlign = 'center'
       context.textBaseline = 'top'
       context.fillStyle = palette.label
-      context.fillText(node.title, x, y + radius + 2 / scale)
+      context.fillText(shortLabel(node.title), x, y + radius + 2 / scale)
     }
     context.globalAlpha = 1
   }
@@ -233,7 +239,7 @@ export function DiaryGraph() {
             </button>
           ))}
         </div>
-        {legend.map(({ id, name, color }) => (
+        {legend.map(({ id, name, ...mark }) => (
           <button
             key={id}
             type="button"
@@ -244,7 +250,7 @@ export function DiaryGraph() {
               group === name && 'bg-muted font-medium',
             )}
           >
-            <span className={cn('size-2 rounded-full', COLOR_DOT[color])} aria-hidden />
+            <LabelMark mark={mark} />
             {name}
           </button>
         ))}

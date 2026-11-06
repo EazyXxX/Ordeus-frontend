@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
   cn(
-    'rounded-md px-3 py-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring',
+    'rounded-md px-3 py-1 text-sm outline-none max-lg:py-1.5 focus-visible:ring-2 focus-visible:ring-ring',
     isActive ? 'bg-muted font-medium' : 'text-muted-foreground hover:text-foreground',
   )
 

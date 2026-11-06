@@ -90,7 +90,7 @@ export function TaskList({ columns, onAddCard, onOpenCard }: TaskListProps) {
             <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
               <tr>
                 <SortHeader sortKey="title" label="Задача" sort={sort} onSort={changeSort} />
-                <SortHeader sortKey="status" label="Статус" sort={sort} className="w-28 md:w-44" onSort={changeSort} />
+                <SortHeader sortKey="status" label="Статус" sort={sort} className="hidden w-32 sm:table-cell md:w-44" onSort={changeSort} />
                 <SortHeader
                   sortKey="priority"
                   label="Приоритет"
@@ -115,12 +115,35 @@ export function TaskList({ columns, onAddCard, onOpenCard }: TaskListProps) {
                       <button
                         type="button"
                         onClick={() => onOpenCard(card)}
-                        className="block w-full truncate rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="block w-full rounded-sm text-left break-words outline-none focus-visible:ring-2 focus-visible:ring-ring sm:truncate"
                       >
                         {card.title}
                       </button>
+                      <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground sm:hidden">
+                        <span className="flex items-center gap-1.5">
+                          <span className={cn('size-2 shrink-0 rounded-full', COLOR_DOT[column.color])} aria-hidden />
+                          {column.title}
+                        </span>
+                        {priority && (
+                          <span className="flex items-center gap-1">
+                            <priority.icon className={cn('size-3.5', priority.className)} aria-hidden />
+                            {PRIORITY_LABELS[card.priority]}
+                          </span>
+                        )}
+                        {card.dueDate && (
+                          <span
+                            className={cn(
+                              'flex items-center gap-1',
+                              isOverdue(card.dueDate) && 'font-medium text-destructive',
+                            )}
+                          >
+                            <CalendarDays className="size-3.5" aria-hidden />
+                            {formatDue(card.dueDate)}
+                          </span>
+                        )}
+                      </span>
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="hidden px-3 py-2 sm:table-cell">
                       <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
                         <span className={cn('size-2 shrink-0 rounded-full', COLOR_DOT[column.color])} aria-hidden />
                         <span className="truncate">{column.title}</span>

@@ -75,7 +75,7 @@ export function KanbanColumn({
       aria-label={column.title}
       style={{ transform: CSS.Translate.toString(transform), transition }}
       className={cn(
-        'flex max-h-full w-72 shrink-0 flex-col gap-2 rounded-lg bg-muted/60 p-2',
+        'flex max-h-full w-72 shrink-0 snap-start flex-col gap-2 rounded-lg bg-muted/60 p-2',
         isDragging && 'opacity-40',
       )}
     >
