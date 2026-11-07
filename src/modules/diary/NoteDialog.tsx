@@ -1,5 +1,7 @@
-import { useState, type FormEvent } from 'react'
-import { X } from 'lucide-react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useMutation } from '@tanstack/react-query'
+import { Loader2, SpellCheck, Undo2, X } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { t } from '@/i18n'
 import {
@@ -17,7 +19,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { hasTouchScreen } from '@/lib/utils'
-import type { Folder, Note, NoteInput, NoteRef } from './api'
+import * as api from './api'
+import type { Folder, Note, NoteInput, NoteRef, NoteText } from './api'
 
 const parseTags = (value: string) =>
   value
@@ -44,6 +47,39 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
   const [links, setLinks] = useState<NoteRef[]>(note?.links ?? [])
   const [dailyDate, setDailyDate] = useState(note ? (note.dailyDate ?? '') : defaultDailyDate)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  // Both versions of the last correction, until the author edits the result.
+  const [corrected, setCorrected] = useState<{ before: NoteText; after: NoteText } | null>(null)
+
+  // Closing the note stops the model, which may have a long text to go through.
+  const stopProofreading = useRef<AbortController | null>(null)
+  useEffect(() => () => stopProofreading.current?.abort(), [])
+
+  const proofread = useMutation({
+    mutationFn: () => {
+      stopProofreading.current = new AbortController()
+      return api.proofreadNote({ title, body }, stopProofreading.current.signal)
+    },
+    onSuccess: (after) => {
+      if (after.title === title && after.body === body) {
+        toast.success(t('note.noMistakes'))
+        return
+      }
+      setCorrected({ before: { title, body }, after })
+      setTitle(after.title)
+      setBody(after.body)
+    },
+    onError: () => {
+      if (!stopProofreading.current?.signal.aborted) toast.error(t('note.proofreadFailed'))
+    },
+  })
+  const canUndo = corrected?.after.title === title && corrected.after.body === body
+
+  function undoCorrection() {
+    if (!corrected) return
+    setTitle(corrected.before.title)
+    setBody(corrected.before.body)
+    setCorrected(null)
+  }
 
   const linkOptions = allNotes.filter(
     (other) => other.id !== note?.id && !links.some((link) => link.id === other.id),
@@ -86,6 +122,7 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
                 aria-label={t('note.heading')}
                 placeholder={t('note.heading')}
                 maxLength={200}
+                readOnly={proofread.isPending}
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
               />
@@ -94,6 +131,7 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
                 placeholder={t('common.text')}
                 className="min-h-0 flex-1 resize-none field-sizing-fixed break-words"
                 maxLength={50_000}
+                readOnly={proofread.isPending}
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
               />
@@ -165,9 +203,27 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
             ) : (
               <span />
             )}
-            <Button type="submit" disabled={!title.trim()}>
-              {t('common.save')}
-            </Button>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row">
+              {canUndo ? (
+                <Button type="button" variant="outline" onClick={undoCorrection}>
+                  <Undo2 />
+                  {t('note.undoProofread')}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={proofread.isPending || !(title + body).trim()}
+                  onClick={() => proofread.mutate()}
+                >
+                  {proofread.isPending ? <Loader2 className="animate-spin" /> : <SpellCheck />}
+                  {proofread.isPending ? t('note.proofreading') : t('note.proofread')}
+                </Button>
+              )}
+              <Button type="submit" disabled={!title.trim() || proofread.isPending}>
+                {t('common.save')}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
 

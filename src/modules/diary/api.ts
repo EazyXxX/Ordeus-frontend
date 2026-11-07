@@ -44,11 +44,12 @@ export const CAPTURES_KEY = ['diary', 'captures']
 
 const BASE = '/api/diary'
 
-function send<T = void>(path: string, method: string, body?: unknown) {
+function send<T = void>(path: string, method: string, body?: unknown, signal?: AbortSignal) {
   return request<T>(`${BASE}${path}`, {
     method,
     headers: { 'Content-Type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body),
+    signal,
   })
 }
 
@@ -60,6 +61,11 @@ export function fetchNotes(filter: NoteFilter) {
 export const createNote = (input: NoteInput) => send('/notes', 'POST', input)
 export const updateNote = (id: string, input: NoteInput) => send(`/notes/${id}`, 'PATCH', input)
 export const deleteNote = (id: string) => send(`/notes/${id}`, 'DELETE')
+
+export type NoteText = Pick<NoteInput, 'title' | 'body'>
+
+export const proofreadNote = (text: NoteText, signal: AbortSignal) =>
+  send<NoteText>('/proofread', 'POST', text, signal)
 
 export const fetchFolders = () => request<Folder[]>(`${BASE}/folders`)
 export const updateFolder = (id: string, changes: { name?: string; color?: Color; emoji?: string }) =>
