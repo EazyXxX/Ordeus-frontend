@@ -12,6 +12,7 @@ export type ChecklistItem = {
 export type CardInput = {
   title: string
   description: string
+  category: string
   color: Color
   priority: Priority
   dueDate: string | null
@@ -32,7 +33,7 @@ export type Column = {
   cards: Card[]
 }
 
-type Board = { columns: Column[] }
+export type Board = { columns: Column[] }
 
 export const BOARD_QUERY_KEY = ['kanban', 'board']
 export const CAPTURES_KEY = ['kanban', 'captures']

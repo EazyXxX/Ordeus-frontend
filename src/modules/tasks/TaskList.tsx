@@ -5,19 +5,27 @@ import { locale, t } from '@/i18n'
 import { COLOR_DOT } from '@/lib/colors'
 import { cn } from '@/lib/utils'
 import type { Card, Column } from './api'
-import { COLOR_EDGE, formatDue, isOverdue, PRIORITIES, PRIORITY_ICONS, PRIORITY_LABELS } from './appearance'
+import { compareCategories, compareUrgency, type CardSort } from './categories'
+import { COLOR_EDGE, formatDue, isOverdue, PRIORITY_ICONS, PRIORITY_LABELS } from './appearance'
 import { InlineAdd } from './InlineAdd'
 
-type SortKey = 'title' | 'status' | 'priority' | 'due'
+type SortKey = 'title' | 'status' | 'category' | 'priority' | 'due'
 type Sort = { key: SortKey; direction: 1 | -1 }
-type Row = { card: Card; column: Column; order: number }
+type Row = { card: Card; column: Column; category: string; order: number }
 
 const collator = new Intl.Collator(locale)
 
 const COMPARE: Record<Exclude<SortKey, 'due'>, (a: Row, b: Row) => number> = {
   title: (a, b) => collator.compare(a.card.title, b.card.title),
   status: (a, b) => a.order - b.order,
-  priority: (a, b) => PRIORITIES.indexOf(a.card.priority) - PRIORITIES.indexOf(b.card.priority),
+  category: (a, b) => compareCategories(a.category, b.category) || compareUrgency(a.card, b.card),
+  priority: (a, b) => compareUrgency(b.card, a.card),
+}
+
+const SORT_OF: Record<CardSort, Sort> = {
+  manual: { key: 'status', direction: 1 },
+  urgency: { key: 'priority', direction: -1 },
+  category: { key: 'category', direction: 1 },
 }
 
 function sortRows(rows: Row[], { key, direction }: Sort) {
@@ -63,17 +71,24 @@ function SortHeader({ sortKey, label, sort, className, onSort }: SortHeaderProps
 
 type TaskListProps = {
   columns: Column[]
+  // Where the list starts. Its column headers sort it further.
+  cardSort: CardSort
+  // Whether the list has a category column at all.
+  categories: boolean
+  showsCategory: (columnId: string) => boolean
   onAddCard: (columnId: string, title: string) => void
   onOpenCard: (card: Card) => void
 }
 
-export function TaskList({ columns, onAddCard, onOpenCard }: TaskListProps) {
-  const [sort, setSort] = useState<Sort>({ key: 'status', direction: 1 })
+export function TaskList({ columns, cardSort, categories, showsCategory, onAddCard, onOpenCard }: TaskListProps) {
+  const [sort, setSort] = useState<Sort>(SORT_OF[cardSort])
 
   const rows = useMemo(() => {
-    const all = columns.flatMap((column) => column.cards.map((card) => ({ card, column })))
+    const all = columns.flatMap((column) =>
+      column.cards.map((card) => ({ card, column, category: showsCategory(column.id) ? card.category : '' })),
+    )
     return sortRows(all.map((row, order) => ({ ...row, order })), sort)
-  }, [columns, sort])
+  }, [columns, showsCategory, sort])
 
   function changeSort(key: SortKey) {
     setSort((current) => ({ key, direction: current.key === key ? (current.direction === 1 ? -1 : 1) : 1 }))
@@ -92,6 +107,15 @@ export function TaskList({ columns, onAddCard, onOpenCard }: TaskListProps) {
               <tr>
                 <SortHeader sortKey="title" label={t('tasks.task')} sort={sort} onSort={changeSort} />
                 <SortHeader sortKey="status" label={t('tasks.status')} sort={sort} className="hidden w-32 sm:table-cell md:w-44" onSort={changeSort} />
+                {categories && (
+                  <SortHeader
+                    sortKey="category"
+                    label={t('tasks.category')}
+                    sort={sort}
+                    className="hidden w-36 lg:table-cell"
+                    onSort={changeSort}
+                  />
+                )}
                 <SortHeader
                   sortKey="priority"
                   label={t('common.priority')}
@@ -106,7 +130,7 @@ export function TaskList({ columns, onAddCard, onOpenCard }: TaskListProps) {
               </tr>
             </thead>
             <tbody>
-              {rows.map(({ card, column }) => {
+              {rows.map(({ card, column, category }) => {
                 const priority = card.priority === 'none' ? null : PRIORITY_ICONS[card.priority]
                 const done = card.checklist.filter((item) => item.done).length
 
@@ -120,11 +144,13 @@ export function TaskList({ columns, onAddCard, onOpenCard }: TaskListProps) {
                       >
                         {card.title}
                       </button>
+                      {category && <span className="hidden truncate text-xs text-muted-foreground sm:block lg:hidden">{category}</span>}
                       <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground sm:hidden">
                         <span className="flex items-center gap-1.5">
                           <span className={cn('size-2 shrink-0 rounded-full', COLOR_DOT[column.color])} aria-hidden />
                           {column.title}
                         </span>
+                        {category && <span>{category}</span>}
                         {priority && (
                           <span className="flex items-center gap-1">
                             <priority.icon className={cn('size-3.5', priority.className)} aria-hidden />
@@ -150,6 +176,11 @@ export function TaskList({ columns, onAddCard, onOpenCard }: TaskListProps) {
                         <span className="truncate">{column.title}</span>
                       </span>
                     </td>
+                    {categories && (
+                      <td className="hidden truncate px-3 py-2 text-xs text-muted-foreground lg:table-cell">
+                        {category || '—'}
+                      </td>
+                    )}
                     <td className="hidden px-3 py-2 md:table-cell">
                       {priority ? (
                         <span className="flex items-center gap-1.5 text-xs">

@@ -8,15 +8,18 @@ import { CardContent } from './cardFace'
 
 type KanbanCardProps = {
   card: Card
+  showCategory: boolean
   dragDisabled: boolean
   onOpen: () => void
 }
 
-export function KanbanCard({ card, dragDisabled, onOpen }: KanbanCardProps) {
+export function KanbanCard({ card, showCategory, dragDisabled, onOpen }: KanbanCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     data: { type: 'card' },
     disabled: dragDisabled,
+    // The default skips cards that change columns, which makes neighbours jump.
+    animateLayoutChanges: ({ isSorting, wasDragging }) => isSorting || wasDragging,
   })
 
   return (
@@ -34,7 +37,7 @@ export function KanbanCard({ card, dragDisabled, onOpen }: KanbanCardProps) {
       {...listeners}
       onClick={onOpen}
     >
-      <CardContent card={card} />
+      <CardContent card={card} showCategory={showCategory} />
     </button>
   )
 }

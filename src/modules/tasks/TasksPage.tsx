@@ -13,12 +13,37 @@ import { BOARD_QUERY_KEY, fetchBoard, type CardInput, type Column } from './api'
 import { isOverdue, PRIORITIES, PRIORITY_LABELS, type Priority } from './appearance'
 import { filterColumns, findCard, isFiltering, type TaskFilter } from './board-state'
 import { CardDialog } from './CardDialog'
+import { CARD_SORTS, useTaskCategories, type CardSort } from './categories'
 import { KanbanBoard } from './KanbanBoard'
 import { TaskList } from './TaskList'
 import { TasksZen } from './TasksZen'
 
 const LIST_PATH = '/tasks/list'
 const ZEN_PATH = '/tasks/zen'
+const SORT_STORAGE_KEY = 'ordeus.tasks.sort'
+const SORT_LABELS: Record<CardSort, string> = {
+  manual: t('tasks.sortManual'),
+  urgency: t('tasks.sortUrgency'),
+  category: t('tasks.sortCategory'),
+}
+
+function loadSort(): CardSort {
+  try {
+    const stored = localStorage.getItem(SORT_STORAGE_KEY)
+    return CARD_SORTS.find((sort) => sort === stored) ?? 'manual'
+  } catch {
+    return 'manual'
+  }
+}
+
+function storeSort(sort: CardSort) {
+  try {
+    localStorage.setItem(SORT_STORAGE_KEY, sort)
+  } catch {
+    // The choice just lasts until the page is reloaded.
+  }
+}
+
 const TABS = [
   { to: '/tasks', label: t('tasks.kanban') },
   { to: LIST_PATH, label: t('tasks.list') },
@@ -53,6 +78,11 @@ function Tasks({ columns }: { columns: Column[] }) {
   const showZen = pathname === ZEN_PATH
   const filtering = isFiltering(filter)
   const visibleColumns = useMemo(() => filterColumns(columns, filter), [columns, filter])
+  const [chosenSort, setChosenSort] = useState(loadSort)
+  const { enabled: categoriesOn } = useTaskCategories(columns)
+  // With categories turned off, there is nothing to sort by.
+  const sort = chosenSort === 'category' && !categoriesOn ? 'manual' : chosenSort
+  const categories = useTaskCategories(columns, sort)
   const allCards = columns.flatMap((column) => column.cards)
   const overdue = allCards.filter((card) => isOverdue(card.dueDate)).length
   const openCard = openCardId ? findCard(columns, openCardId) : undefined
@@ -117,8 +147,25 @@ function Tasks({ columns }: { columns: Column[] }) {
               </option>
             ))}
           </select>
+          <select
+            aria-label={t('tasks.sort')}
+            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm"
+            value={sort}
+            onChange={(event) => {
+              const next = event.target.value as CardSort
+              setChosenSort(next)
+              storeSort(next)
+            }}
+          >
+            {CARD_SORTS.filter((value) => value !== 'category' || categoriesOn).map((value) => (
+              <option key={value} value={value}>
+                {SORT_LABELS[value]}
+              </option>
+            ))}
+          </select>
           <p className="ml-auto text-xs text-muted-foreground">
             {filtering && !showList ? t('tasks.filterNoDrag') : ''}
+            {!filtering && !showList && sort !== 'manual' ? t('tasks.sortedDrag') : ''}
             {t('tasks.total', { count: allCards.length })}
             {overdue > 0 && <span className="text-destructive">{t('tasks.overdue', { count: overdue })}</span>}
           </p>
@@ -129,12 +176,16 @@ function Tasks({ columns }: { columns: Column[] }) {
         <TasksZen active={captures.active} />
       ) : showList ? (
         <TaskList
-          columns={visibleColumns}
+          key={sort}
+          cardSort={sort}
+          columns={categories.arrange(visibleColumns)}
+          categories={categories.enabled}
+          showsCategory={categories.shows}
           onAddCard={(columnId, title) => save(() => api.createCard(columnId, title))}
           onOpenCard={(card) => setOpenCardId(card.id)}
         />
       ) : (
-        <KanbanBoard columns={columns} filter={filter} save={save} onOpenCard={(card) => setOpenCardId(card.id)} />
+        <KanbanBoard columns={columns} filter={filter} sort={sort} save={save} onOpenCard={(card) => setOpenCardId(card.id)} />
       )}
 
       {openCard && (

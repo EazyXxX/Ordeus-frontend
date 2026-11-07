@@ -20,6 +20,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { hasTouchScreen } from '@/lib/utils'
 import type { Card, CardInput, Column } from './api'
 import { PRIORITIES, PRIORITY_LABELS, type Priority } from './appearance'
+import { compareCategories } from './categories'
 import { Checklist, type ChecklistRow } from './Checklist'
 
 const dateTimeFormat = new Intl.DateTimeFormat(locale, {
@@ -49,8 +50,12 @@ type CardDialogProps = {
 }
 
 export function CardDialog({ card, columns, onClose, onSave, onDelete }: CardDialogProps) {
+  const knownCategories = [
+    ...new Set(columns.flatMap((column) => column.cards.map((other) => other.category)).filter(Boolean)),
+  ].sort(compareCategories)
   const [title, setTitle] = useState(card.title)
   const [description, setDescription] = useState(card.description)
+  const [category, setCategory] = useState(card.category)
   const [color, setColor] = useState(card.color)
   const [priority, setPriority] = useState<Priority>(card.priority)
   const [dueDate, setDueDate] = useState(card.dueDate ?? '')
@@ -66,6 +71,7 @@ export function CardDialog({ card, columns, onClose, onSave, onDelete }: CardDia
     const input: CardInput = {
       title: title.trim() || card.title,
       description,
+      category: category.trim(),
       color,
       priority,
       dueDate: dueDate || null,
@@ -74,6 +80,7 @@ export function CardDialog({ card, columns, onClose, onSave, onDelete }: CardDia
     const original: CardInput = {
       title: card.title,
       description: card.description,
+      category: card.category,
       color: card.color,
       priority: card.priority,
       dueDate: card.dueDate,
@@ -125,6 +132,20 @@ export function CardDialog({ card, columns, onClose, onSave, onDelete }: CardDia
                   </option>
                 ))}
               </select>
+            </Field>
+            <Field label={t('tasks.category')}>
+              <Input
+                className="h-8"
+                list="task-categories"
+                maxLength={50}
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+              />
+              <datalist id="task-categories">
+                {knownCategories.map((name) => (
+                  <option key={name} value={name} />
+                ))}
+              </datalist>
             </Field>
             <Field label={t('common.priority')}>
               <select

@@ -5,6 +5,7 @@ import {
   DndContext,
   DragOverlay,
   KeyboardSensor,
+  MeasuringStrategy,
   MouseSensor,
   pointerWithin,
   rectIntersection,
@@ -27,10 +28,11 @@ import {
 import { t } from '@/i18n'
 import { cn } from '@/lib/utils'
 import * as api from './api'
-import { BOARD_QUERY_KEY, type Card, type Column } from './api'
+import { BOARD_QUERY_KEY, type Board, type Card, type Column } from './api'
 import { cardClass } from './appearance'
 import { cardIndex, filterColumns, findCard, findCardColumn, isFiltering, placeCard, type TaskFilter } from './board-state'
 import { CardContent } from './cardFace'
+import { savedIndex, useTaskCategories, type CardSort } from './categories'
 import { InlineAdd } from './InlineAdd'
 import { KanbanColumn } from './KanbanColumn'
 
@@ -52,14 +54,18 @@ const detectCollisions: CollisionDetection = (args) => {
   return cardHits.length > 0 ? cardHits : hits
 }
 
+// A moved card changes the height of its columns, so their sizes go stale at once.
+const MEASURING = { droppable: { strategy: MeasuringStrategy.Always } }
+
 type KanbanBoardProps = {
   columns: Column[]
   filter: TaskFilter
+  sort: CardSort
   save: UseMutateFunction<unknown, Error, () => Promise<unknown>>
   onOpenCard: (card: Card) => void
 }
 
-export function KanbanBoard({ columns: savedColumns, filter, save, onOpenCard }: KanbanBoardProps) {
+export function KanbanBoard({ columns: pageColumns, filter, sort, save, onOpenCard }: KanbanBoardProps) {
   const queryClient = useQueryClient()
   // While dragging, the board renders this copy, so a card can visibly change
   // columns before anything is saved.
@@ -75,11 +81,21 @@ export function KanbanBoard({ columns: savedColumns, filter, save, onOpenCard }:
     }),
   )
 
+  // Read from the cache, because the page hears about a drop only after a tick.
+  // Until then the board would put the card back, and the drop animation would
+  // aim at the old place while the card appears at the new one.
+  const savedColumns = queryClient.getQueryData<Board>(BOARD_QUERY_KEY)?.columns ?? pageColumns
   const columns = draft ?? savedColumns
   // Order is saved by position in the whole column, so dragging a filtered,
   // partial list could not place a card correctly.
   const filtering = isFiltering(filter)
-  const visibleColumns = useMemo(() => filterColumns(columns, filter), [columns, filter])
+  // A drag works on arranged cards and leaves them as they are, so that a card
+  // does not jump to its category on the way.
+  const { shows, orderOf, arrange } = useTaskCategories(savedColumns, sort)
+  const visibleColumns = useMemo(
+    () => filterColumns(draft ?? arrange(savedColumns), filter),
+    [draft, savedColumns, arrange, filter],
+  )
   const activeCard = activeId ? findCard(columns, activeId) : undefined
   const activeColumn = columns.find((column) => column.id === activeId)
 
@@ -97,7 +113,7 @@ export function KanbanBoard({ columns: savedColumns, filter, save, onOpenCard }:
 
   function handleDragStart({ active }: DragStartEvent) {
     setActiveId(String(active.id))
-    setDraft(savedColumns)
+    setDraft(arrange(savedColumns))
   }
 
   function handleDragOver({ active, over }: DragOverEvent) {
@@ -125,22 +141,29 @@ export function KanbanBoard({ columns: savedColumns, filter, save, onOpenCard }:
       const from = draft.findIndex((column) => column.id === id)
       const to = draft.findIndex((column) => column.id === overId)
       if (from === to || to < 0) return finishDrag(null)
-      return finishDrag(arrayMove(draft, from, to), () => api.moveColumn(id, to))
+      return finishDrag(arrayMove(savedColumns, from, to), () => api.moveColumn(id, to))
     }
 
     const target = findCardColumn(draft, id)
     const original = findCardColumn(savedColumns, id)
     if (!target || !original) return finishDrag(null)
     const overIndex = cardIndex(target, overId)
-    const index = overIndex >= 0 ? overIndex : cardIndex(target, id)
+    const dropIndex = overIndex >= 0 ? overIndex : cardIndex(target, id)
+    const dropped = placeCard(draft, id, target.id, dropIndex).find((column) => column.id === target.id)
+    const savedTarget = savedColumns.find((column) => column.id === target.id)
+    if (!dropped || !savedTarget) return finishDrag(null)
+    // A sorted column decides the place itself, so a card dropped elsewhere goes back to it.
+    const order = orderOf(target.id)
+    const index = order ? savedIndex(savedTarget.cards, dropped.cards.toSorted(order), id, order) : dropIndex
     if (target.id === original.id && index === cardIndex(original, id)) return finishDrag(null)
-    finishDrag(placeCard(draft, id, target.id, index), () => api.moveCard(id, target.id, index))
+    finishDrag(placeCard(savedColumns, id, target.id, index), () => api.moveCard(id, target.id, index))
   }
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={detectCollisions}
+      measuring={MEASURING}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
@@ -153,6 +176,9 @@ export function KanbanBoard({ columns: savedColumns, filter, save, onOpenCard }:
               key={column.id}
               column={column}
               totalCards={columns.find(({ id }) => id === column.id)?.cards.length ?? 0}
+              grouped={shows(column.id) && sort !== 'urgency'}
+              showCategory={shows(column.id) && sort === 'urgency'}
+              activeId={activeId}
               dragDisabled={filtering}
               onAddCard={(title) => save(() => api.createCard(column.id, title))}
               onOpenCard={onOpenCard}
@@ -173,13 +199,18 @@ export function KanbanBoard({ columns: savedColumns, filter, save, onOpenCard }:
 
       <DragOverlay>
         {activeCard && (
-          <div className={cn(cardClass(activeCard.color), 'rotate-1 cursor-grabbing shadow-lg')}>
+          <div className={cn(cardClass(activeCard.color), 'cursor-grabbing shadow-lg')}>
             <CardContent card={activeCard} />
           </div>
         )}
         {activeColumn && (
-          <div className="cursor-grabbing rounded-lg bg-muted p-3 text-sm font-medium shadow-lg">
-            {activeColumn.title}
+          <div className="flex max-h-[80svh] w-72 cursor-grabbing flex-col gap-2 overflow-hidden rounded-lg bg-muted p-2 shadow-lg">
+            <p className="flex h-8 items-center truncate pl-1 text-sm font-medium">{activeColumn.title}</p>
+            {activeColumn.cards.map((card) => (
+              <div key={card.id} className={cardClass(card.color)}>
+                <CardContent card={card} />
+              </div>
+            ))}
           </div>
         )}
       </DragOverlay>

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ApiError } from '@/lib/api'
 import type { Color } from '@/lib/colors'
+import { BOARD_QUERY_KEY, fetchBoard } from '@/modules/tasks/api'
 import { AccountAvatar } from './AccountAvatar'
 import { AiSection } from './AiSection'
 import { Section } from './Section'
@@ -20,8 +21,10 @@ import {
   switchAccount,
   updateLanguage,
   updateProfile,
+  updateTaskSettings,
   useCurrentUser,
   useSession,
+  type TaskCategories,
 } from './session'
 
 const MIN_PASSWORD_LENGTH = 8
@@ -111,6 +114,78 @@ function LanguageSection() {
       </div>
       <p className="text-xs text-muted-foreground">
         {choose.isError ? t('account.languageFailed') : t('account.languageHint')}
+      </p>
+    </Section>
+  )
+}
+
+const CATEGORY_MODES: { value: TaskCategories; label: string }[] = [
+  { value: 'all', label: t('account.categoriesAll') },
+  { value: 'backlog', label: t('account.categoriesBacklog') },
+  { value: 'off', label: t('account.categoriesOff') },
+]
+
+function Settings() {
+  const queryClient = useQueryClient()
+  const { taskCategories, backlogColumnId } = useCurrentUser()
+  const board = useQuery({ queryKey: BOARD_QUERY_KEY, queryFn: fetchBoard })
+  const columns = board.data?.columns ?? []
+  // A deleted column stays in the session until the next load, so it is checked here.
+  const backlog = columns.find((column) => column.id === backlogColumnId)
+
+  const save = useMutation({
+    mutationFn: updateTaskSettings,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: SESSION_KEY }),
+  })
+
+  return (
+    <Section title={t('account.settings')}>
+      <div className="flex flex-col gap-2">
+        <p className="text-xs font-medium text-muted-foreground">{t('account.categories')}</p>
+        <div role="group" aria-label={t('account.categories')} className="flex flex-wrap gap-2">
+          {CATEGORY_MODES.map(({ value, label }) => (
+            <Button
+              key={value}
+              variant={value === taskCategories ? 'secondary' : 'outline'}
+              aria-pressed={value === taskCategories}
+              disabled={save.isPending}
+              onClick={() => save.mutate({ categories: value, backlogColumnId: backlog?.id ?? null })}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {taskCategories === 'backlog' && (
+        <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
+          {t('account.backlogColumn')}
+          <select
+            className="h-8 w-full rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
+            disabled={save.isPending || columns.length === 0}
+            value={backlog?.id ?? ''}
+            onChange={(event) =>
+              save.mutate({ categories: taskCategories, backlogColumnId: event.target.value || null })
+            }
+          >
+            <option value="">
+              {columns[0] ? t('account.backlogFirst', { name: columns[0].title }) : t('account.backlogNoColumns')}
+            </option>
+            {columns.map((column) => (
+              <option key={column.id} value={column.id}>
+                {column.title}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+
+      <p className="text-xs text-muted-foreground">
+        {save.isError
+          ? t('account.settingsFailed')
+          : taskCategories === 'backlog'
+            ? t('account.backlogHint')
+            : t('account.categoriesHint')}
       </p>
     </Section>
   )
@@ -282,6 +357,7 @@ export default function AccountPage() {
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-4">
         <Profile />
         <LanguageSection />
+        <Settings />
         <Stats />
         <AiSection />
         <Password />

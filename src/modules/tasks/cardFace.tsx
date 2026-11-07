@@ -5,11 +5,17 @@ import { cn } from '@/lib/utils'
 import type { Card } from './api'
 import { formatDue, isOverdue, PRIORITY_ICONS, PRIORITY_LABELS } from './appearance'
 
-export function CardContent({ card }: { card: Card }) {
+type CardContentProps = {
+  card: Card
+  showCategory?: boolean
+}
+
+export function CardContent({ card, showCategory }: CardContentProps) {
   const done = card.checklist.filter((item) => item.done).length
   const total = card.checklist.length
   const priority = card.priority === 'none' ? null : PRIORITY_ICONS[card.priority]
-  const hasMeta = priority || card.dueDate || total > 0 || card.description
+  const category = showCategory ? card.category : ''
+  const hasMeta = priority || card.dueDate || total > 0 || card.description || category
 
   return (
     <>
@@ -35,6 +41,7 @@ export function CardContent({ card }: { card: Card }) {
               {done}/{total}
             </span>
           )}
+          {category && <span className="min-w-0 truncate">{category}</span>}
           {card.description && <AlignLeft className="size-3.5" role="img" aria-label={t('tasks.hasDescription')} />}
         </span>
       )}

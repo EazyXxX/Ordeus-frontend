@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { MoreHorizontal } from 'lucide-react'
@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input'
 import { COLOR_DOT, type Color } from '@/lib/colors'
 import { cn } from '@/lib/utils'
 import type { Card, Column } from './api'
+import { withHeadings } from './categories'
 import { InlineAdd } from './InlineAdd'
 import { KanbanCard } from './KanbanCard'
 
@@ -33,6 +34,11 @@ type KanbanColumnProps = {
   column: Column
   // The whole column, even when a board filter hides some of its cards.
   totalCards: number
+  // Whether the cards go under headings of their categories.
+  grouped: boolean
+  // Whether each card names its category, for when there are no headings.
+  showCategory: boolean
+  activeId: string | null
   dragDisabled: boolean
   onAddCard: (title: string) => void
   onOpenCard: (card: Card) => void
@@ -44,6 +50,9 @@ type KanbanColumnProps = {
 export function KanbanColumn({
   column,
   totalCards,
+  grouped,
+  showCategory,
+  activeId,
   dragDisabled,
   onAddCard,
   onOpenCard,
@@ -51,6 +60,7 @@ export function KanbanColumn({
   onColorChange,
   onDelete,
 }: KanbanColumnProps) {
+  const rows = withHeadings(column.cards, grouped ? activeId : undefined)
   const [renaming, setRenaming] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
@@ -128,8 +138,20 @@ export function KanbanColumn({
 
       <SortableContext items={column.cards.map((card) => card.id)} strategy={verticalListSortingStrategy}>
         <div className="flex min-h-1 flex-col gap-2 overflow-y-auto">
-          {column.cards.map((card) => (
-            <KanbanCard key={card.id} card={card} dragDisabled={dragDisabled} onOpen={() => onOpenCard(card)} />
+          {rows.map(({ card, heading }) => (
+            <Fragment key={card.id}>
+              {heading !== undefined && (
+                <h3 className="truncate px-1 pt-1 text-xs font-medium text-muted-foreground">
+                  {heading || t('tasks.noCategory')}
+                </h3>
+              )}
+              <KanbanCard
+                card={card}
+                showCategory={showCategory}
+                dragDisabled={dragDisabled}
+                onOpen={() => onOpenCard(card)}
+              />
+            </Fragment>
           ))}
         </div>
       </SortableContext>
