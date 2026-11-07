@@ -77,7 +77,7 @@ function DayEntry({ value, onMark }: { value: BookDay; onMark: () => void }) {
       {day?.summary && (
         <aside className="border-l-2 pl-4 text-[0.92em] leading-relaxed text-muted-foreground italic">
           <p className="mb-1 font-sans text-xs not-italic">{t('book.daySummary')}</p>
-          <p>{day.summary}</p>
+          <p className="whitespace-pre-line">{day.summary}</p>
           {day.focus && <p className="mt-2">{t('journal.tomorrow', { text: day.focus })}</p>}
         </aside>
       )}

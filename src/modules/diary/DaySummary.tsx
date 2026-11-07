@@ -72,8 +72,8 @@ export function DaySummary({ date, day, notes }: DaySummaryProps) {
 
   return (
     <div className="flex items-start gap-2 border-l-2 pl-3 text-sm text-muted-foreground">
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p>{day.summary}</p>
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <p className="whitespace-pre-line">{day.summary}</p>
         {day.focus && <p>{t('journal.tomorrow', { text: day.focus })}</p>}
         {outdated && <p className="text-xs text-foreground">{t('journal.outdated')}</p>}
       </div>
