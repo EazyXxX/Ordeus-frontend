@@ -35,7 +35,31 @@ export type Column = {
 
 export type Board = { columns: Column[] }
 
+export type NamedCount = { name: string; count: number }
+
+export type ReportStats = {
+  completed: number
+  previousCompleted: number
+  created: number
+  onTime: number
+  late: number
+  overdueOpen: number
+  averageHours: number | null
+  // Monday to Sunday.
+  byDay: number[]
+  byCategory: NamedCount[]
+  byPriority: NamedCount[]
+  tasks: { title: string; category: string; priority: Priority; completedAt: string; late: boolean }[]
+}
+
+export type Report = {
+  week: string
+  stats: ReportStats
+  createdAt: string
+}
+
 export const BOARD_QUERY_KEY = ['kanban', 'board']
+export const REPORTS_KEY = ['kanban', 'reports']
 export const CAPTURES_KEY = ['kanban', 'captures']
 
 const BASE = '/api/kanban'
@@ -55,6 +79,10 @@ export const updateColumn = (id: string, changes: { title?: string; color?: Colo
   send(`/columns/${id}`, 'PATCH', changes)
 export const deleteColumn = (id: string) => send(`/columns/${id}`, 'DELETE')
 export const moveColumn = (id: string, index: number) => send(`/columns/${id}/move`, 'POST', { index })
+
+export const fetchReports = () => request<Report[]>(`${BASE}/reports`)
+export const createReport = (week: string, timeZone: string) => send<Report>('/reports', 'POST', { week, timeZone })
+export const deleteReport = (week: string) => send(`/reports/${week}`, 'DELETE')
 
 export const createCard = (columnId: string, title: string) => send('/cards', 'POST', { columnId, title })
 export const updateCard = (id: string, input: CardInput) => send(`/cards/${id}`, 'PATCH', input)

@@ -14,6 +14,7 @@ export type Account = {
   language: Language
   taskCategories: TaskCategories
   backlogColumnId: string | null
+  doneColumnId: string | null
 }
 
 export type Session = {
@@ -66,7 +67,9 @@ export const signOut = () => post<Session | undefined>('/api/auth/logout')
 
 export const updateProfile = (input: { name: string; color: Color }) => post('/api/account', input, 'PATCH')
 export const updateLanguage = (next: Language) => post('/api/account/language', { language: next }, 'PATCH')
-export const updateTaskSettings = (input: { categories: TaskCategories; backlogColumnId: string | null }) =>
+export type TaskSettings = { categories: TaskCategories; backlogColumnId: string | null; doneColumnId: string | null }
+
+export const updateTaskSettings = (input: TaskSettings) =>
   post('/api/account/tasks', input, 'PATCH')
 export const changePassword = (input: { current: string; next: string }) => post('/api/account/password', input)
 export const fetchStats = () => request<AccountStats>('/api/account/stats')

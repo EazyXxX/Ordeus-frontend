@@ -127,11 +127,13 @@ const CATEGORY_MODES: { value: TaskCategories; label: string }[] = [
 
 function Settings() {
   const queryClient = useQueryClient()
-  const { taskCategories, backlogColumnId } = useCurrentUser()
+  const { taskCategories, backlogColumnId, doneColumnId } = useCurrentUser()
   const board = useQuery({ queryKey: BOARD_QUERY_KEY, queryFn: fetchBoard })
   const columns = board.data?.columns ?? []
   // A deleted column stays in the session until the next load, so it is checked here.
   const backlog = columns.find((column) => column.id === backlogColumnId)
+  const done = columns.find((column) => column.id === doneColumnId)
+  const current = { categories: taskCategories, backlogColumnId: backlog?.id ?? null, doneColumnId: done?.id ?? null }
 
   const save = useMutation({
     mutationFn: updateTaskSettings,
@@ -149,7 +151,7 @@ function Settings() {
               variant={value === taskCategories ? 'secondary' : 'outline'}
               aria-pressed={value === taskCategories}
               disabled={save.isPending}
-              onClick={() => save.mutate({ categories: value, backlogColumnId: backlog?.id ?? null })}
+              onClick={() => save.mutate({ ...current, categories: value })}
             >
               {label}
             </Button>
@@ -164,9 +166,7 @@ function Settings() {
             className="h-8 w-full rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
             disabled={save.isPending || columns.length === 0}
             value={backlog?.id ?? ''}
-            onChange={(event) =>
-              save.mutate({ categories: taskCategories, backlogColumnId: event.target.value || null })
-            }
+            onChange={(event) => save.mutate({ ...current, backlogColumnId: event.target.value || null })}
           >
             <option value="">
               {columns[0] ? t('account.backlogFirst', { name: columns[0].title }) : t('account.backlogNoColumns')}
@@ -187,6 +187,28 @@ function Settings() {
             ? t('account.backlogHint')
             : t('account.categoriesHint')}
       </p>
+
+      <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
+        {t('account.doneColumn')}
+        <select
+          className="h-8 w-full rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
+          disabled={save.isPending || columns.length === 0}
+          value={done?.id ?? ''}
+          onChange={(event) => save.mutate({ ...current, doneColumnId: event.target.value || null })}
+        >
+          <option value="">
+            {columns.length > 0
+              ? t('account.doneLast', { name: columns[columns.length - 1].title })
+              : t('account.backlogNoColumns')}
+          </option>
+          {columns.map((column) => (
+            <option key={column.id} value={column.id}>
+              {column.title}
+            </option>
+          ))}
+        </select>
+        <span className="font-normal">{t('account.doneHint')}</span>
+      </label>
     </Section>
   )
 }

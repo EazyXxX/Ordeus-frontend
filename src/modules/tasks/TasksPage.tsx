@@ -16,10 +16,12 @@ import { CardDialog } from './CardDialog'
 import { CARD_SORTS, useTaskCategories, type CardSort } from './categories'
 import { KanbanBoard } from './KanbanBoard'
 import { TaskList } from './TaskList'
+import { TaskReports } from './TaskReports'
 import { TasksZen } from './TasksZen'
 
 const LIST_PATH = '/tasks/list'
 const ZEN_PATH = '/tasks/zen'
+const REPORTS_PATH = '/tasks/reports'
 const SORT_STORAGE_KEY = 'ordeus.tasks.sort'
 const SORT_LABELS: Record<CardSort, string> = {
   manual: t('tasks.sortManual'),
@@ -47,6 +49,8 @@ function storeSort(sort: CardSort) {
 const TABS = [
   { to: '/tasks', label: t('tasks.kanban') },
   { to: LIST_PATH, label: t('tasks.list') },
+  { to: REPORTS_PATH, label: t('tasks.reports') },
+  // Zen stays the last tab, as in the diary.
   { to: ZEN_PATH, label: t('tasks.zen') },
 ]
 
@@ -76,6 +80,7 @@ function Tasks({ columns }: { columns: Column[] }) {
 
   const showList = pathname === LIST_PATH
   const showZen = pathname === ZEN_PATH
+  const showReports = pathname === REPORTS_PATH
   const filtering = isFiltering(filter)
   const visibleColumns = useMemo(() => filterColumns(columns, filter), [columns, filter])
   const [chosenSort, setChosenSort] = useState(loadSort)
@@ -124,7 +129,7 @@ function Tasks({ columns }: { columns: Column[] }) {
         </div>
       )}
 
-      {!showZen && (
+      {!showZen && !showReports && (
         <div className="flex shrink-0 flex-wrap items-center gap-2 border-b px-4 py-2">
           <Input
             type="search"
@@ -174,6 +179,8 @@ function Tasks({ columns }: { columns: Column[] }) {
 
       {showZen ? (
         <TasksZen active={captures.active} />
+      ) : showReports ? (
+        <TaskReports columns={columns} />
       ) : showList ? (
         <TaskList
           key={sort}
