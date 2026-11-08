@@ -58,7 +58,20 @@ const GROUPINGS: { value: GraphGrouping; label: string }[] = [
   { value: 'tag', label: t('diary.tags') },
 ]
 
-const PALETTE = {
+type Palette = {
+  label: string
+  halo: string
+  surface: string
+  rim: string
+  link: string
+  linkActive: string
+  linkDimmed: string
+  particle: string
+  glowAlpha: number
+  blend: GlobalCompositeOperation
+}
+
+const PALETTE: Record<'light' | 'dark', Palette> = {
   light: {
     label: '#262626',
     halo: 'rgba(255, 255, 255, 0.9)',
@@ -83,7 +96,7 @@ const PALETTE = {
     glowAlpha: 0.9,
     blend: 'lighter',
   },
-} as const
+}
 
 // Glass panels that float over the graph.
 const PANEL = 'pointer-events-auto rounded-xl border bg-background/70 shadow-sm backdrop-blur-md'
@@ -114,8 +127,22 @@ function glowSprite(color: string) {
 // Labels fade in with zoom, and well-connected notes get theirs first.
 const labelFade = (scale: number, degree: number) => Math.min(1, Math.max(0, (scale + degree * 0.12 - LABEL_ZOOM) / 0.4))
 
+let paletteCache = { theme: '', palette: PALETTE.light }
+
 // Read while drawing, so switching the theme repaints without restarting the layout.
-const currentPalette = () => (document.documentElement.classList.contains('dark') ? PALETTE.dark : PALETTE.light)
+// Nodes and labels sit on the page's own background, which colored themes tint.
+function currentPalette() {
+  const root = document.documentElement
+  if (root.className !== paletteCache.theme) {
+    const base = root.classList.contains('dark') ? PALETTE.dark : PALETTE.light
+    const background = getComputedStyle(root).getPropertyValue('--background').trim()
+    paletteCache = {
+      theme: root.className,
+      palette: background ? { ...base, surface: background, halo: background } : base,
+    }
+  }
+  return paletteCache.palette
+}
 
 // The graph draws on a canvas, which needs its size in pixels.
 function useElementSize() {

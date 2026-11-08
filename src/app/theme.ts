@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react'
 
-export const THEMES = ['light', 'dark', 'system'] as const
+export const THEMES = ['light', 'dark', 'system', 'beige', 'midnight', 'acid'] as const
 export type Theme = (typeof THEMES)[number]
+
+// Colored themes are built on light or dark. index.html keeps its own copy of
+// this list, for the first paint.
+const DARK_THEMES: Theme[] = ['dark', 'midnight', 'acid']
+const COLORED_THEMES = ['beige', 'midnight', 'acid'] as const
 
 // index.html reads this key too, so the first paint has the right theme.
 const STORAGE_KEY = 'ordeus.theme'
@@ -29,8 +34,10 @@ function writeTheme(theme: Theme) {
 }
 
 function applyTheme(theme: Theme) {
-  const dark = theme === 'dark' || (theme === 'system' && matchMedia(DARK_QUERY).matches)
-  document.documentElement.classList.toggle('dark', dark)
+  const root = document.documentElement
+  const dark = DARK_THEMES.includes(theme) || (theme === 'system' && matchMedia(DARK_QUERY).matches)
+  root.classList.toggle('dark', dark)
+  for (const colored of COLORED_THEMES) root.classList.toggle(`theme-${colored}`, theme === colored)
 }
 
 export function useTheme() {

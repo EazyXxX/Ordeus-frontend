@@ -10,7 +10,9 @@
       try {
         const theme = localStorage.getItem('ordeus.theme') ?? 'system'
         const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches
-        document.documentElement.classList.toggle('dark', theme === 'dark' || (theme === 'system' && prefersDark))
+        const dark = ['dark', 'midnight', 'acid'].includes(theme) || (theme === 'system' && prefersDark)
+        document.documentElement.classList.toggle('dark', dark)
+        if (['beige', 'midnight', 'acid'].includes(theme)) document.documentElement.classList.add('theme-' + theme)
       } catch {
         // Without storage the app applies the system theme on start.
       }

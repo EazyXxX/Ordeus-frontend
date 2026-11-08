@@ -119,6 +119,103 @@
     --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Colored themes sit on top of light or dark: the html element carries both
+   their class and, for a dark one, .dark, so dark: utilities keep working. */
+.theme-beige {
+    --background: oklch(0.965 0.018 80);
+    --foreground: oklch(0.27 0.03 55);
+    --card: oklch(0.982 0.012 82);
+    --card-foreground: oklch(0.27 0.03 55);
+    --popover: oklch(0.982 0.012 82);
+    --popover-foreground: oklch(0.27 0.03 55);
+    --primary: oklch(0.42 0.065 50);
+    --primary-foreground: oklch(0.975 0.014 82);
+    --secondary: oklch(0.93 0.028 76);
+    --secondary-foreground: oklch(0.32 0.04 55);
+    --muted: oklch(0.93 0.028 76);
+    --muted-foreground: oklch(0.5 0.04 60);
+    --accent: oklch(0.915 0.035 74);
+    --accent-foreground: oklch(0.3 0.04 55);
+    --border: oklch(0.875 0.033 74);
+    --input: oklch(0.86 0.036 74);
+    --ring: oklch(0.62 0.07 60);
+    --sidebar: oklch(0.945 0.024 78);
+    --sidebar-foreground: oklch(0.27 0.03 55);
+    --sidebar-primary: oklch(0.42 0.065 50);
+    --sidebar-primary-foreground: oklch(0.975 0.014 82);
+    --sidebar-accent: oklch(0.905 0.035 74);
+    --sidebar-accent-foreground: oklch(0.3 0.04 55);
+    --sidebar-border: oklch(0.875 0.033 74);
+    --sidebar-ring: oklch(0.62 0.07 60);
+}
+
+.dark.theme-midnight {
+    --background: oklch(0.17 0.035 262);
+    --foreground: oklch(0.95 0.012 250);
+    --card: oklch(0.215 0.042 262);
+    --card-foreground: oklch(0.95 0.012 250);
+    --popover: oklch(0.215 0.042 262);
+    --popover-foreground: oklch(0.95 0.012 250);
+    --primary: oklch(0.8 0.11 245);
+    --primary-foreground: oklch(0.2 0.04 262);
+    --secondary: oklch(0.27 0.045 262);
+    --secondary-foreground: oklch(0.95 0.012 250);
+    --muted: oklch(0.27 0.045 262);
+    --muted-foreground: oklch(0.74 0.04 252);
+    --accent: oklch(0.29 0.05 262);
+    --accent-foreground: oklch(0.95 0.012 250);
+    --border: oklch(0.85 0.06 250 / 14%);
+    --input: oklch(0.85 0.06 250 / 20%);
+    --ring: oklch(0.65 0.1 245);
+    --sidebar: oklch(0.195 0.04 262);
+    --sidebar-foreground: oklch(0.95 0.012 250);
+    --sidebar-primary: oklch(0.8 0.11 245);
+    --sidebar-primary-foreground: oklch(0.2 0.04 262);
+    --sidebar-accent: oklch(0.27 0.05 262);
+    --sidebar-accent-foreground: oklch(0.95 0.012 250);
+    --sidebar-border: oklch(0.85 0.06 250 / 12%);
+    --sidebar-ring: oklch(0.65 0.1 245);
+}
+
+/* Neon lime on near-black, with hot pink for whatever is selected. */
+.dark.theme-acid {
+    --background: oklch(0.13 0.03 150);
+    --foreground: oklch(0.94 0.2 125);
+    --card: oklch(0.18 0.05 150);
+    --card-foreground: oklch(0.94 0.2 125);
+    --popover: oklch(0.18 0.05 150);
+    --popover-foreground: oklch(0.94 0.2 125);
+    --primary: oklch(0.9 0.24 128);
+    --primary-foreground: oklch(0.15 0.04 150);
+    --secondary: oklch(0.7 0.3 340);
+    --secondary-foreground: oklch(0.99 0.01 340);
+    --muted: oklch(0.24 0.07 150);
+    --muted-foreground: oklch(0.82 0.16 128);
+    --accent: oklch(0.9 0.24 128);
+    --accent-foreground: oklch(0.15 0.04 150);
+    --destructive: oklch(0.7 0.25 20);
+    --border: oklch(0.9 0.24 128 / 38%);
+    --input: oklch(0.9 0.24 128 / 45%);
+    --ring: oklch(0.7 0.3 340);
+    --sidebar: oklch(0.1 0.025 150);
+    --sidebar-foreground: oklch(0.94 0.2 125);
+    --sidebar-primary: oklch(0.7 0.3 340);
+    --sidebar-primary-foreground: oklch(0.99 0.01 340);
+    --sidebar-accent: oklch(0.9 0.24 128);
+    --sidebar-accent-foreground: oklch(0.15 0.04 150);
+    --sidebar-border: oklch(0.9 0.24 128 / 30%);
+    --sidebar-ring: oklch(0.7 0.3 340);
+}
+
+.dark.theme-acid :is(h1, h2) {
+    text-shadow: 0 0 14px oklch(0.9 0.24 128 / 55%);
+}
+
+.dark.theme-acid ::selection {
+    background: oklch(0.7 0.3 340);
+    color: oklch(0.99 0.01 340);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
