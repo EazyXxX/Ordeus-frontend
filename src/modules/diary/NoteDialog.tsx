@@ -22,6 +22,13 @@ import { hasTouchScreen } from '@/lib/utils'
 import * as api from './api'
 import type { Folder, Note, NoteInput, NoteRef, NoteText } from './api'
 
+// A daily note starts with its full date, the way the server titles the ones
+// from zen, so that days and years stand out on the graph.
+function dailyTitle(date: string) {
+  const [year, month, day] = date.split('-')
+  return `${day}.${month}.${year} — `
+}
+
 const parseTags = (value: string) =>
   value
     .split(',')
@@ -40,7 +47,7 @@ type NoteDialogProps = {
 }
 
 export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onClose, onSave, onDelete }: NoteDialogProps) {
-  const [title, setTitle] = useState(note?.title ?? '')
+  const [title, setTitle] = useState(note?.title ?? (defaultDailyDate ? dailyTitle(defaultDailyDate) : ''))
   const [body, setBody] = useState(note?.body ?? '')
   const [folder, setFolder] = useState(note?.folder ?? '')
   const [tags, setTags] = useState(note?.tags.join(', ') ?? '')
