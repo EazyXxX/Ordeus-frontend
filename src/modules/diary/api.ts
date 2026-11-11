@@ -2,6 +2,7 @@ import { request } from '@/lib/api'
 import type { Capture } from '@/components/zen/useCaptures'
 import type { Color } from '@/lib/colors'
 import { localDate } from '@/lib/dates'
+import { prepareImage } from './images'
 
 export type NoteRef = { id: string; title: string }
 
@@ -12,6 +13,8 @@ export type Note = {
   folder: string
   tags: string[]
   links: NoteRef[]
+  // Image ids, oldest first.
+  images: string[]
   fromAi: boolean
   // Set on daily notes: the day the note describes.
   dailyDate: string | null
@@ -58,9 +61,20 @@ export function fetchNotes(filter: NoteFilter) {
   return request<Note[]>(`${BASE}/notes?${params}`)
 }
 
-export const createNote = (input: NoteInput) => send('/notes', 'POST', input)
+export const createNote = (input: NoteInput) => send<{ id: string }>('/notes', 'POST', input)
 export const updateNote = (id: string, input: NoteInput) => send(`/notes/${id}`, 'PATCH', input)
 export const deleteNote = (id: string) => send(`/notes/${id}`, 'DELETE')
+
+// What the note dialog changed about the pictures; it is saved with the note.
+export type ImageChanges = { added: File[]; removed: string[] }
+
+export function uploadImage(noteId: string, image: Blob) {
+  const form = new FormData()
+  form.append('file', image, 'image')
+  return request<{ id: string }>(`${BASE}/notes/${noteId}/images`, { method: 'POST', body: form })
+}
+
+export const deleteImage = (id: string) => send(`/images/${id}`, 'DELETE')
 
 export type NoteText = Pick<NoteInput, 'title' | 'body'>
 
@@ -133,6 +147,15 @@ export const deleteSummary = (id: string) => send(`/summaries/${id}`, 'DELETE')
 
 export const fetchCaptures = () => request<Capture[]>(`${BASE}/captures`)
 // The author's date, so words like "yesterday" mean the day they were written.
-export const createCapture = (text: string) => send('/captures', 'POST', { text, today: localDate(new Date()) })
+// Pictures go as a form, shrunk first like the ones added to a note.
+export async function createCapture(text: string, images: File[] = []) {
+  const today = localDate(new Date())
+  if (images.length === 0) return send('/captures', 'POST', { text, today })
+  const form = new FormData()
+  form.append('text', text)
+  form.append('today', today)
+  for (const image of images) form.append('file', await prepareImage(image), 'image')
+  return request(`${BASE}/captures`, { method: 'POST', body: form })
+}
 export const retryCapture = (id: string) => send(`/captures/${id}/retry`, 'POST')
 export const deleteCapture = (id: string) => send(`/captures/${id}`, 'DELETE')

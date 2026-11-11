@@ -140,7 +140,7 @@ export function DiaryLibrary() {
           folders={folders.data ?? []}
           allNotes={allNotes.data ?? []}
           onClose={() => setEditing(null)}
-          onSave={(input) => saveNote(editing.note, input)}
+          onSave={(input, images) => saveNote(editing.note, input, images)}
           onDelete={() => {
             if (editing.note) removeNote(editing.note)
             setEditing(null)

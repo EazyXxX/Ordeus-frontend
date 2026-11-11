@@ -15,6 +15,8 @@ import { LIBRARY_KEY, SUMMARIES_KEY, type Summary } from './api'
 import { buildBook, type BookDay } from './book-data'
 import { DayDialog } from './DayDialog'
 import { DayMark } from './DayMark'
+import { ImageViewer } from './ImageViewer'
+import { imageUrl } from './images'
 import { ScoreBars } from './ScoreBars'
 import { useDays } from './useDays'
 
@@ -46,6 +48,7 @@ function remember(key: string, value: string) {
 function DayEntry({ value, onMark }: { value: BookDay; onMark: () => void }) {
   const { date, notes, day } = value
   const paragraphs = (body: string) => body.split(/\n+/).filter(Boolean)
+  const [viewing, setViewing] = useState<{ images: string[]; index: number } | null>(null)
 
   return (
     <section data-book-day={date} className="flex flex-col gap-5 scroll-mt-20">
@@ -71,8 +74,27 @@ function DayEntry({ value, onMark }: { value: BookDay; onMark: () => void }) {
               {paragraph}
             </p>
           ))}
+          {note.images.length > 0 && (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {note.images.map((id, index) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-label={t('note.openImage', { index: index + 1 })}
+                  onClick={() => setViewing({ images: note.images, index })}
+                  className="aspect-[4/3] overflow-hidden rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <img src={imageUrl(id)} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </article>
       ))}
+
+      {viewing && (
+        <ImageViewer urls={viewing.images.map(imageUrl)} start={viewing.index} onClose={() => setViewing(null)} />
+      )}
 
       {day?.summary && (
         <aside className="border-l-2 pl-4 text-[0.92em] leading-relaxed text-muted-foreground italic">

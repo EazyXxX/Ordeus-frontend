@@ -470,5 +470,19 @@
   "reports.listCut": "Показаны первые {{count}}",
   "account.doneColumn": "Колонка выполненных задач",
   "account.doneLast": "Последняя колонка на доске: {{name}}",
-  "account.doneHint": "Для отчётов: задача считается выполненной, когда попадает в эту колонку."
+  "account.doneHint": "Для отчётов: задача считается выполненной, когда попадает в эту колонку.",
+  "note.images": "Фотографии",
+  "note.addImages": "Фото",
+  "note.imagesHint": "Фото: {{count}} из {{max}}. Можно вставить из буфера или перетащить в окно.",
+  "note.imagesLimit": "В заметке не больше {{count}} фото",
+  "note.notImage": "Добавить можно только картинки",
+  "note.openImage": "Открыть фото {{index}}",
+  "note.removeImage": "Убрать фото {{index}}",
+  "note.imageCount": "Фото в заметке: {{count}}",
+  "image.title": "Фото",
+  "image.counter": "{{index}} из {{total}}",
+  "image.previous": "Предыдущее фото",
+  "image.next": "Следующее фото",
+  "zen.addPhotos": "Добавить фото",
+  "zen.photosOnly": "Фото без текста: {{count}}"
 }

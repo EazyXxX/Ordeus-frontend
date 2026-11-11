@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent, type FormEvent } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { Loader2, SpellCheck, Undo2, X } from 'lucide-react'
+import { ImagePlus, Loader2, SpellCheck, Undo2, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { t } from '@/i18n'
@@ -20,7 +20,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { hasTouchScreen } from '@/lib/utils'
 import * as api from './api'
-import type { Folder, Note, NoteInput, NoteRef, NoteText } from './api'
+import type { Folder, ImageChanges, Note, NoteInput, NoteRef, NoteText } from './api'
+import { ImageViewer } from './ImageViewer'
+import { imageUrl, isImage, MAX_NOTE_IMAGES } from './images'
 
 // A daily note starts with its full date, the way the server titles the ones
 // from zen, so that days and years stand out on the graph.
@@ -42,7 +44,7 @@ type NoteDialogProps = {
   folders: Folder[]
   allNotes: Note[]
   onClose: () => void
-  onSave: (input: NoteInput) => void
+  onSave: (input: NoteInput, images: ImageChanges) => void
   onDelete: () => void
 }
 
@@ -54,6 +56,48 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
   const [links, setLinks] = useState<NoteRef[]>(note?.links ?? [])
   const [dailyDate, setDailyDate] = useState(note ? (note.dailyDate ?? '') : defaultDailyDate)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  // Pictures change only when the note is saved, like the rest of it.
+  const [removedImages, setRemovedImages] = useState<string[]>([])
+  const [addedImages, setAddedImages] = useState<File[]>([])
+  const [viewing, setViewing] = useState<number | null>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
+
+  const addedUrls = useMemo(() => addedImages.map((file) => URL.createObjectURL(file)), [addedImages])
+  useEffect(() => () => addedUrls.forEach((url) => URL.revokeObjectURL(url)), [addedUrls])
+
+  const keptImages = (note?.images ?? []).filter((id) => !removedImages.includes(id))
+  const imageTiles = [
+    ...keptImages.map((id) => ({ key: id, url: imageUrl(id), remove: () => setRemovedImages([...removedImages, id]) })),
+    ...addedImages.map((file, index) => ({
+      key: addedUrls[index],
+      url: addedUrls[index],
+      remove: () => setAddedImages(addedImages.filter((other) => other !== file)),
+    })),
+  ]
+  const roomForImages = MAX_NOTE_IMAGES - imageTiles.length
+
+  function addImages(files: File[]) {
+    const images = files.filter(isImage)
+    if (images.length < files.length) toast.error(t('note.notImage'))
+    if (images.length > roomForImages) toast.error(t('note.imagesLimit', { count: MAX_NOTE_IMAGES }))
+    if (roomForImages > 0) setAddedImages([...addedImages, ...images.slice(0, roomForImages)])
+  }
+
+  function pasteImages(event: ClipboardEvent) {
+    const files = [...event.clipboardData.files]
+    if (files.some(isImage)) {
+      event.preventDefault()
+      addImages(files)
+    }
+  }
+
+  function dropImages(event: DragEvent) {
+    const files = [...event.dataTransfer.files]
+    if (files.length === 0) return
+    event.preventDefault()
+    addImages(files)
+  }
+
   // Both versions of the last correction, until the author edits the result.
   const [corrected, setCorrected] = useState<{ before: NoteText; after: NoteText } | null>(null)
 
@@ -102,7 +146,7 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
       tags: parseTags(tags),
       linkIds: links.map((link) => link.id),
       dailyDate: dailyDate || null,
-    })
+    }, { added: addedImages, removed: removedImages })
     onClose()
   }
 
@@ -116,6 +160,8 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
       <DialogContent
         className="flex h-[90svh] max-h-[90svh] w-full flex-col overflow-hidden sm:max-w-5xl max-sm:h-dvh max-sm:max-h-dvh max-sm:max-w-full max-sm:rounded-none"
         onOpenAutoFocus={(event) => note && hasTouchScreen() && event.preventDefault()}
+        onDragOver={(event) => event.dataTransfer.types.includes('Files') && event.preventDefault()}
+        onDrop={dropImages}
       >
         <form onSubmit={submit} className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
           <DialogHeader>
@@ -141,7 +187,59 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
                 readOnly={proofread.isPending}
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
+                onPaste={pasteImages}
               />
+
+              <div className="flex shrink-0 flex-col gap-1.5">
+                <div role="list" aria-label={t('note.images')} className="flex gap-2 overflow-x-auto pb-1">
+                  {imageTiles.map((tile, index) => (
+                    <div key={tile.key} role="listitem" className="group relative size-20 shrink-0">
+                      <button
+                        type="button"
+                        aria-label={t('note.openImage', { index: index + 1 })}
+                        onClick={() => setViewing(index)}
+                        className="size-full overflow-hidden rounded-md border outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <img src={tile.url} alt="" loading="lazy" className="size-full object-cover" />
+                      </button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon-xs"
+                        aria-label={t('note.removeImage', { index: index + 1 })}
+                        onClick={tile.remove}
+                        className="absolute top-1 right-1 opacity-90 shadow-sm pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:focus-visible:opacity-100"
+                      >
+                        <X />
+                      </Button>
+                    </div>
+                  ))}
+                  {roomForImages > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => fileInput.current?.click()}
+                      className="flex size-20 shrink-0 flex-col items-center justify-center gap-1 rounded-md border border-dashed text-xs text-muted-foreground outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <ImagePlus className="size-5" aria-hidden />
+                      {t('note.addImages')}
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t('note.imagesHint', { count: imageTiles.length, max: MAX_NOTE_IMAGES })}
+                </p>
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  hidden
+                  onChange={(event) => {
+                    addImages([...(event.target.files ?? [])])
+                    event.target.value = ''
+                  }}
+                />
+              </div>
             </div>
 
             <aside className="flex min-w-0 flex-col gap-3 md:overflow-y-auto">
@@ -233,6 +331,10 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
             </div>
           </DialogFooter>
         </form>
+
+        {viewing !== null && (
+          <ImageViewer urls={imageTiles.map((tile) => tile.url)} start={viewing} onClose={() => setViewing(null)} />
+        )}
 
         <AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
           <AlertDialogContent>

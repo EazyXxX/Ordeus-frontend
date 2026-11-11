@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import type { Day, Mark, Note } from './api'
 import { DayMark } from './DayMark'
 import { DaySummary } from './DaySummary'
+import { imageUrl } from './images'
 import { LabelMark } from './LabelMark'
 
 const dailyFormat = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' })
@@ -41,6 +42,7 @@ export function NoteList({ notes, folderMarks, tagMarks, journal, onOpen }: Note
             >
               {note.body}
             </span>
+            {note.images.length > 0 && <Thumbnails images={note.images} />}
             <span className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
               {note.dailyDate && !journal && (
                 <span className="flex items-center gap-1 font-medium text-foreground">
@@ -73,6 +75,27 @@ export function NoteList({ notes, folderMarks, tagMarks, journal, onOpen }: Note
         </li>
       ))}
     </ul>
+  )
+}
+
+const SHOWN_THUMBNAILS = 4
+
+// A strip under the text. The card opens the note, where the pictures are full.
+function Thumbnails({ images }: { images: string[] }) {
+  const hidden = images.length - SHOWN_THUMBNAILS
+  return (
+    <span className="mt-2 flex gap-1.5" aria-label={t('note.imageCount', { count: images.length })}>
+      {images.slice(0, SHOWN_THUMBNAILS).map((id, index) => (
+        <span key={id} className="relative size-16 shrink-0 overflow-hidden rounded-md border bg-muted">
+          <img src={imageUrl(id)} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
+          {index === SHOWN_THUMBNAILS - 1 && hidden > 0 && (
+            <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-sm font-medium text-white">
+              +{hidden}
+            </span>
+          )}
+        </span>
+      ))}
+    </span>
   )
 }
 

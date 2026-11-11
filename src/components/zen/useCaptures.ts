@@ -8,6 +8,8 @@ export type Capture = {
   status: 'pending' | 'processing' | 'failed'
   error: string
   createdAt: string
+  // Pictures sent with the capture. Only the diary takes them.
+  images?: number
 }
 
 const POLL_INTERVAL_MS = 2_000

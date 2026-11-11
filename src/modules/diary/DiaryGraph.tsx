@@ -456,7 +456,7 @@ export function DiaryGraph() {
           folders={folders.data ?? []}
           allNotes={allNotes}
           onClose={() => setOpened(null)}
-          onSave={(input) => saveNote(opened, input)}
+          onSave={(input, images) => saveNote(opened, input, images)}
           onDelete={() => {
             removeNote(opened)
             setOpened(null)

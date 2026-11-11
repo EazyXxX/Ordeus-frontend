@@ -44,7 +44,9 @@ export function CaptureStatus({
       )}
       {failed.map((capture) => (
         <div key={capture.id} role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-3">
-          <p className="line-clamp-3 text-sm whitespace-pre-wrap">{capture.text}</p>
+          <p className="line-clamp-3 text-sm whitespace-pre-wrap">
+            {capture.text || t('zen.photosOnly', { count: capture.images ?? 0 })}
+          </p>
           <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
             {failedLabel} {capture.error}
           </p>

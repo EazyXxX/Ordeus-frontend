@@ -470,5 +470,19 @@
   "reports.listCut": "Showing the first {{count}}",
   "account.doneColumn": "Done column",
   "account.doneLast": "Last column on the board: {{name}}",
-  "account.doneHint": "For reports: a task counts as done when it reaches this column."
+  "account.doneHint": "For reports: a task counts as done when it reaches this column.",
+  "note.images": "Photos",
+  "note.addImages": "Photo",
+  "note.imagesHint": "Photos: {{count}} of {{max}}. Paste them or drop them onto the window.",
+  "note.imagesLimit": "A note holds at most {{count}} photos",
+  "note.notImage": "Only pictures can be added",
+  "note.openImage": "Open photo {{index}}",
+  "note.removeImage": "Remove photo {{index}}",
+  "note.imageCount": "Photos in the note: {{count}}",
+  "image.title": "Photo",
+  "image.counter": "{{index}} of {{total}}",
+  "image.previous": "Previous photo",
+  "image.next": "Next photo",
+  "zen.addPhotos": "Add photos",
+  "zen.photosOnly": "Photos without text: {{count}}"
 }
