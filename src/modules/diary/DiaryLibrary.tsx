@@ -92,6 +92,8 @@ export function DiaryLibrary() {
             queryKey={api.CAPTURES_KEY}
             onRetry={api.retryCapture}
             onDelete={api.deleteCapture}
+            onKeep={api.keepCapture}
+            keptKey={api.LIBRARY_KEY}
           />
 
           {notes.isPending && <p className="text-sm text-muted-foreground">{t('diary.loading')}</p>}

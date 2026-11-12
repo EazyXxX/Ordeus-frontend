@@ -159,3 +159,4 @@ export async function createCapture(text: string, images: File[] = []) {
 }
 export const retryCapture = (id: string) => send(`/captures/${id}/retry`, 'POST')
 export const deleteCapture = (id: string) => send(`/captures/${id}`, 'DELETE')
+export const keepCapture = (id: string) => send(`/captures/${id}/keep`, 'POST')

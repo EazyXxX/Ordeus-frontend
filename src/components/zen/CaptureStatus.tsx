@@ -13,6 +13,16 @@ type CaptureStatusProps = {
   queryKey: QueryKey
   onRetry: (id: string) => Promise<unknown>
   onDelete: (id: string) => Promise<unknown>
+  // Saves the text as it is, without the model. Only the diary offers it.
+  onKeep?: (id: string) => Promise<unknown>
+  // Refreshed after onKeep, where the kept text shows up.
+  keptKey?: QueryKey
+}
+
+// A cut-off answer is what a local model gives when the entry does not fit its
+// context, so the author gets a hint instead of a parser error.
+function describeError(error: string) {
+  return error.includes('unexpected end of JSON') ? t('zen.tooLong') : error
 }
 
 export function CaptureStatus({
@@ -23,12 +33,15 @@ export function CaptureStatus({
   queryKey,
   onRetry,
   onDelete,
+  onKeep,
+  keptKey,
 }: CaptureStatusProps) {
   const queryClient = useQueryClient()
   const { mutate: run } = useMutation({
     mutationFn: (action: () => Promise<unknown>) => action(),
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey })
+      if (keptKey) void queryClient.invalidateQueries({ queryKey: keptKey })
     },
   })
 
@@ -48,12 +61,17 @@ export function CaptureStatus({
             {capture.text || t('zen.photosOnly', { count: capture.images ?? 0 })}
           </p>
           <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-            {failedLabel} {capture.error}
+            {failedLabel} {describeError(capture.error)}
           </p>
-          <div className="mt-2 flex gap-2">
+          <div className="mt-2 flex flex-wrap gap-2">
             <Button size="sm" variant="outline" onClick={() => run(() => onRetry(capture.id))}>
               {t('common.retry')}
             </Button>
+            {onKeep && (
+              <Button size="sm" variant="outline" onClick={() => run(() => onKeep(capture.id))}>
+                {t('zen.keepAsIs')}
+              </Button>
+            )}
             <Button size="sm" variant="ghost" onClick={() => run(() => onDelete(capture.id))}>
               {t('common.delete')}
             </Button>
