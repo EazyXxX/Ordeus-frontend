@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent, type FormEvent } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { ImagePlus, Loader2, SpellCheck, Undo2, X } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -20,7 +20,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { hasTouchScreen } from '@/lib/utils'
 import * as api from './api'
-import type { Folder, ImageChanges, Note, NoteInput, NoteRef, NoteText } from './api'
+import { LIBRARY_KEY, type Folder, type ImageChanges, type Note, type NoteInput, type NoteRef, type NoteText } from './api'
+import { FolderPicker, TagPicker } from './NoteLabels'
 import { ImageViewer } from './ImageViewer'
 import { imageUrl, isImage, MAX_NOTE_IMAGES } from './images'
 
@@ -30,12 +31,6 @@ function dailyTitle(date: string) {
   const [year, month, day] = date.split('-')
   return `${day}.${month}.${year} — `
 }
-
-const parseTags = (value: string) =>
-  value
-    .split(',')
-    .map((tag) => tag.trim())
-    .filter(Boolean)
 
 type NoteDialogProps = {
   note: Note | null
@@ -52,7 +47,9 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
   const [title, setTitle] = useState(note?.title ?? (defaultDailyDate ? dailyTitle(defaultDailyDate) : ''))
   const [body, setBody] = useState(note?.body ?? '')
   const [folder, setFolder] = useState(note?.folder ?? '')
-  const [tags, setTags] = useState(note?.tags.join(', ') ?? '')
+  const [tags, setTags] = useState(note?.tags ?? [])
+  const [tagDraft, setTagDraft] = useState('')
+  const knownTags = useQuery({ queryKey: [...LIBRARY_KEY, 'tags'], queryFn: api.fetchTags })
   const [links, setLinks] = useState<NoteRef[]>(note?.links ?? [])
   const [dailyDate, setDailyDate] = useState(note ? (note.dailyDate ?? '') : defaultDailyDate)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -143,7 +140,8 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
       title,
       body,
       folder,
-      tags: parseTags(tags),
+      // A tag still being typed counts, as if Enter had been pressed.
+      tags: [...tags, tagDraft.trim()].filter(Boolean),
       linkIds: links.map((link) => link.id),
       dailyDate: dailyDate || null,
     }, { added: addedImages, removed: removedImages })
@@ -247,24 +245,13 @@ export function NoteDialog({ note, defaultDailyDate = '', folders, allNotes, onC
                 {t('note.journalDay')}
                 <Input type="date" value={dailyDate} onChange={(event) => setDailyDate(event.target.value)} />
               </label>
-              <Input
-                aria-label={t('note.folder')}
-                placeholder={t('note.folder')}
-                list="diary-folders"
-                maxLength={200}
-                value={folder}
-                onChange={(event) => setFolder(event.target.value)}
-              />
-              <datalist id="diary-folders">
-                {folders.map(({ id, name }) => (
-                  <option key={id} value={name} />
-                ))}
-              </datalist>
-              <Input
-                aria-label={t('note.tags')}
-                placeholder={t('note.tags')}
+              <FolderPicker folders={folders} value={folder} onChange={setFolder} />
+              <TagPicker
+                tags={knownTags.data ?? []}
                 value={tags}
-                onChange={(event) => setTags(event.target.value)}
+                draft={tagDraft}
+                onDraftChange={setTagDraft}
+                onChange={setTags}
               />
 
               <div className="flex min-w-0 flex-col gap-2">

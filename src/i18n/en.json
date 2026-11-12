@@ -484,5 +484,15 @@
   "image.previous": "Previous photo",
   "image.next": "Next photo",
   "zen.addPhotos": "Add photos",
-  "zen.photosOnly": "Photos without text: {{count}}"
+  "zen.photosOnly": "Photos without text: {{count}}",
+  "zen.keepAsIs": "Save as is",
+  "zen.tooLong": "The entry did not fit in the model's memory. Save it as is or split it into parts.",
+  "note.folderLabel": "Folder",
+  "note.noFolder": "No folder",
+  "note.newFolder": "New folder…",
+  "note.newFolderName": "New folder name",
+  "note.tagsLabel": "Tags",
+  "note.addTag": "Add a tag and press Enter",
+  "note.removeTag": "Remove tag {{name}}",
+  "note.suggestedTags": "Existing tags"
 }

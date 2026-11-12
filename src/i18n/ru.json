@@ -484,5 +484,15 @@
   "image.previous": "Предыдущее фото",
   "image.next": "Следующее фото",
   "zen.addPhotos": "Добавить фото",
-  "zen.photosOnly": "Фото без текста: {{count}}"
+  "zen.photosOnly": "Фото без текста: {{count}}",
+  "zen.keepAsIs": "Сохранить как есть",
+  "zen.tooLong": "Запись не поместилась в память модели. Сохраните её как есть или разбейте на части.",
+  "note.folderLabel": "Папка",
+  "note.noFolder": "Без папки",
+  "note.newFolder": "Новая папка…",
+  "note.newFolderName": "Название новой папки",
+  "note.tagsLabel": "Теги",
+  "note.addTag": "Добавить тег и нажать Enter",
+  "note.removeTag": "Убрать тег {{name}}",
+  "note.suggestedTags": "Существующие теги"
 }
